@@ -1,0 +1,48 @@
+name: SSO E2E
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["develop", "main"]
+    paths:
+      - "backend/**"
+      - "docker/**"
+      - "docker-bake.sso-e2e.hcl"
+      - "docker-compose.sso-test.yml"
+      - ".github/workflows/sso-e2e.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  sso-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build SSO images
+        uses: docker/bake-action@v6
+        with:
+          files: docker-bake.sso-e2e.hcl
+          targets: sso-e2e
+
+      - name: Run SSO smoke test
+        run: |
+          docker compose -f docker-compose.sso-test.yml up \
+            --no-build \
+            --abort-on-container-exit \
+            --exit-code-from sso-smoke
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.sso-test.yml logs
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.sso-test.yml down -v

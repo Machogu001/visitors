@@ -1,0 +1,113 @@
+name: Laravel CI (MariaDB)
+
+on:
+  push:
+    branches: ["develop", "main"]
+  pull_request:
+    branches: ["develop", "main"]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: visitorportal_test
+          MARIADB_USER: visitor
+          MARIADB_PASSWORD: visitor_pw
+          MARIADB_ROOT_PASSWORD: root_pw
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -proot_pw"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, pdo_mysql, intl, zip, dom, xml, xmlwriter, gmp
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Composer security audit
+        run: composer audit
+
+      - name: Composer licenses
+        run: composer licenses
+
+      - name: Composer license policy check
+        run: php scripts/check-composer-licenses.php
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: NPM security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: PHP Pint Style Check
+        run: ./vendor/bin/pint --test -v
+
+      - name: Generate key
+        run: php artisan key:generate
+
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+
+      - name: Wait for MariaDB
+        run: |
+          php -r '
+          for ($i = 1; $i <= 30; $i++) {
+              $socket = @fsockopen("127.0.0.1", 3306, $errno, $errstr, 2);
+              if ($socket) { fclose($socket); exit(0); }
+              sleep(2);
+          }
+          fwrite(STDERR, "MariaDB did not become reachable.\n");
+          exit(1);
+          '
+
+      - name: Run migrations
+        env:
+          DB_CONNECTION: mariadb
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: visitorportal_test
+          DB_USERNAME: visitor
+          DB_PASSWORD: visitor_pw
+        run: php artisan migrate --force
+
+      - name: Execute tests
+        env:
+          DB_CONNECTION: mariadb
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: visitorportal_test
+          DB_USERNAME: visitor
+          DB_PASSWORD: visitor_pw
+        run: php artisan test

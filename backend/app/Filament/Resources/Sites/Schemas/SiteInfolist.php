@@ -22,6 +22,15 @@ class SiteInfolist
                 TextEntry::make('slug')->label(__('Slug')),
                 TextEntry::make('address')->label(__('Adresse'))->placeholder('-'),
                 TextEntry::make('timezone')->label(__('Zeitzone')),
+                TextEntry::make('generalBookingHost.fullName')
+                    ->label(__('Standard-Gastgeber (Allgemein)'))
+                    ->placeholder('-'),
+                IconEntry::make('allow_general_booking')
+                    ->label(__('Allgemeine Buchungen'))
+                    ->boolean(),
+                IconEntry::make('allow_department_booking')
+                    ->label(__('Abteilungsbuchungen'))
+                    ->boolean(),
                 IconEntry::make('is_active')->label(__('Aktiv'))->boolean(),
             ]);
     }

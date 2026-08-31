@@ -59,6 +59,42 @@ class CheckInOutBoard extends Component
         $this->walkInSiteId = (string) ($this->siteOptions()->first()?->id ?? $this->actor()->site_id);
     }
 
+    public function approve(int $visitId): void
+    {
+        $visit = Visit::query()->findOrFail($visitId);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $this->visitActionService()->approveVisit($visit, $user);
+    }
+
+    public function reject(int $visitId, ?string $reason = null): void
+    {
+        $visit = Visit::query()->findOrFail($visitId);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $this->visitActionService()->rejectVisit($visit, $user, $reason);
+    }
+
+    public function usher(int $visitId): void
+    {
+        $visit = Visit::query()->findOrFail($visitId);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $this->visitActionService()->usherVisit($visit, $user);
+    }
+
     public function checkIn(int $visitId, int $visitorId): void
     {
         $this->authorize('viewAny', Visit::class);
@@ -226,6 +262,8 @@ class CheckInOutBoard extends Component
             ->visibleTo($actor)
             ->with([
                 'host:id,first_name,name',
+                'department:id,name,receptionist_user_id,has_dedicated_reception',
+                'department.receptionist:id,first_name,name',
                 'visitors' => fn ($query) => $query->orderBy('first_name')->orderBy('name'),
             ])
             ->where('status', VisitStatusEnum::Planned->value)
@@ -328,6 +366,16 @@ class CheckInOutBoard extends Component
             'checked_out_label' => $this->formatActionTimestamp($pivot?->checked_out_at),
             'badge_ready' => filled($pivot?->badge_printed_at),
             'can_print_badge' => $canOperate,
+            'is_ushered' => filled($visit->ushered_at),
+            'ushered_label' => $visit->ushered_at ? $this->formatActionTimestamp($visit->ushered_at) : null,
+            'has_dedicated_reception' => (bool) ($visit->department?->has_dedicated_reception || $visit->department?->receptionist_user_id),
+            'receptionist_name' => $visit->department?->receptionist?->fullName,
+            'department_name' => $visit->department?->name,
+            'cheque_number' => $visit->cheque_number,
+            'cheque_amount' => $visit->cheque_amount ? number_format((float) $visit->cheque_amount, 2) : null,
+            'cheque_action' => $visit->cheque_action,
+            'cheque_bank' => $visit->cheque_bank,
+            'is_signed' => filled($visit->signed_at),
             'can_check_in' => $canCheckIn && (blank($pivot?->checked_in_at) || filled($pivot?->checked_out_at)),
             'check_in_label' => filled($pivot?->checked_out_at) ? __('Erneut einchecken') : __('Check-in'),
             'can_check_out' => $canOperate && filled($pivot?->checked_in_at) && blank($pivot?->checked_out_at),

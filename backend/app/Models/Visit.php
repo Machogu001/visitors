@@ -21,8 +21,12 @@ class Visit extends Model
     use HasFactory;
 
     protected $fillable = [
+        'booking_reference',
         'title',
+        'booking_type',
+        'purpose',
         'site_id',
+        'department_id',
         'recurring_visit_series_id',
         'recurrence_occurrence_number',
         'recurrence_original_scheduled_from',
@@ -33,6 +37,21 @@ class Visit extends Model
         'scheduled_from',
         'scheduled_until',
         'status',
+        'approved_at',
+        'approved_by_user_id',
+        'rejected_at',
+        'rejected_by_user_id',
+        'rejection_reason',
+        'ushered_at',
+        'ushered_by_user_id',
+        'cheque_action',
+        'cheque_number',
+        'cheque_amount',
+        'cheque_bank',
+        'cheque_payee_or_drawer',
+        'signature_data',
+        'signed_at',
+        'signed_by_name',
         'is_confidential',
         'is_walk_in',
         'notes',
@@ -46,6 +65,11 @@ class Visit extends Model
     protected $casts = [
         'scheduled_from' => 'datetime',
         'scheduled_until' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'ushered_at' => 'datetime',
+        'signed_at' => 'datetime',
+        'cheque_amount' => 'decimal:2',
         'recurrence_original_scheduled_from' => 'datetime',
         'recurrence_is_modified' => 'boolean',
         'is_confidential' => 'boolean',
@@ -70,6 +94,11 @@ class Visit extends Model
         return $this->belongsTo(Site::class);
     }
 
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
     public function substituteUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'substitute_user_id');
@@ -83,6 +112,21 @@ class Visit extends Model
     public function canceledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'canceled_by_user_id');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by_user_id');
+    }
+
+    public function usheredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ushered_by_user_id');
     }
 
     public function retentionHoldBy(): BelongsTo

@@ -12,6 +12,7 @@ use Database\Factories\SiteFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -31,10 +32,15 @@ class Site extends Model
         'address',
         'timezone',
         'is_active',
+        'allow_general_booking',
+        'general_booking_host_id',
+        'allow_department_booking',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'allow_general_booking' => 'boolean',
+        'allow_department_booking' => 'boolean',
     ];
 
     public static function default(): self
@@ -52,6 +58,11 @@ class Site extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function generalBookingHost(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'general_booking_host_id');
     }
 
     public function departments(): HasMany

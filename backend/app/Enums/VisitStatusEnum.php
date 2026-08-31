@@ -11,17 +11,21 @@ namespace App\Enums;
 enum VisitStatusEnum: string
 {
     case Draft = 'draft';
+    case PendingApproval = 'pending_approval';
     case Planned = 'planned';
     case Completed = 'completed';
     case Canceled = 'canceled';
+    case Rejected = 'rejected';
 
     public function label(): string
     {
         return match ($this) {
-            self::Draft => __('Entwurf'),
-            self::Planned => __('Geplant'),
-            self::Completed => __('Abgeschlossen'),
-            self::Canceled => __('Abgesagt'),
+            self::Draft => __('Draft'),
+            self::PendingApproval => __('Pending Approval'),
+            self::Planned => __('Planned'),
+            self::Completed => __('Completed'),
+            self::Canceled => __('Cancelled'),
+            self::Rejected => __('Declined'),
         };
     }
 

@@ -125,15 +125,88 @@ class VisitActionService
         ]);
     }
 
-    private function notifyHostAboutCheckIn(Visit $visit, Visitor $visitor): void
+    public function approveVisit(Visit $visit, User $actionBy): Visit
     {
-        $recipient = $visit->loadMissing('host')->host;
+        $visit->update([
+            'status' => VisitStatusEnum::Planned->value,
+            'approved_at' => now(),
+            'approved_by_user_id' => $actionBy->id,
+            'rejected_at' => null,
+            'rejected_by_user_id' => null,
+            'rejection_reason' => null,
+        ]);
 
-        if (! $recipient instanceof User || ! $recipient->is_active) {
-            return;
+        // Send confirmation email to guest
+        $visit->loadMissing(['visitors', 'host', 'department', 'site']);
+        foreach ($visit->visitors as $guest) {
+            try {
+                if ($guest->email) {
+                    $guest->notify(new \App\Notifications\Guest\VisitCreated($visit));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('mail')->warning('Failed sending guest approval notification: '.$e->getMessage());
+            }
         }
 
-        Notification::send($recipient, new GuestCheckedInDatabaseNotification($visit, $visitor));
-        Notification::send($recipient, new GuestCheckedInMailNotification($visit, $visitor));
+        return $visit->refresh();
+    }
+
+    public function rejectVisit(Visit $visit, User $actionBy, ?string $reason = null): Visit
+    {
+        $visit->update([
+            'status' => VisitStatusEnum::Rejected->value,
+            'rejected_at' => now(),
+            'rejected_by_user_id' => $actionBy->id,
+            'rejection_reason' => $reason,
+        ]);
+
+        return $visit->refresh();
+    }
+
+    public function usherVisit(Visit $visit, User $actionBy): Visit
+    {
+        $visit->update([
+            'ushered_at' => now(),
+            'ushered_by_user_id' => $actionBy->id,
+        ]);
+
+        return $visit->refresh();
+    }
+
+    public function recordChequeDetails(Visit $visit, array $data): Visit
+    {
+        $visit->update([
+            'cheque_action' => $data['cheque_action'] ?? $visit->cheque_action,
+            'cheque_number' => $data['cheque_number'] ?? $visit->cheque_number,
+            'cheque_amount' => ! empty($data['cheque_amount']) ? (float) $data['cheque_amount'] : $visit->cheque_amount,
+            'cheque_bank' => $data['cheque_bank'] ?? $visit->cheque_bank,
+            'cheque_payee_or_drawer' => $data['cheque_payee_or_drawer'] ?? $visit->cheque_payee_or_drawer,
+            'signature_data' => $data['signature_data'] ?? $visit->signature_data,
+            'signed_by_name' => $data['signed_by_name'] ?? $visit->signed_by_name,
+            'signed_at' => ! empty($data['signature_data']) ? now() : $visit->signed_at,
+        ]);
+
+        return $visit->refresh();
+    }
+
+    private function notifyHostAboutCheckIn(Visit $visit, Visitor $visitor): void
+    {
+        $visit->loadMissing(['host', 'department.receptionist']);
+
+        $recipients = collect();
+
+        if ($visit->host instanceof User && $visit->host->is_active) {
+            $recipients->push($visit->host);
+        }
+
+        // Tier 2: If department has a dedicated receptionist / assistant (e.g. Director's Receptionist), notify them too!
+        if ($visit->department?->receptionist instanceof User && $visit->department->receptionist->is_active) {
+            $recipients->push($visit->department->receptionist);
+        }
+
+        foreach ($recipients->unique('id') as $recipient) {
+            Notification::send($recipient, new GuestCheckedInDatabaseNotification($visit, $visitor));
+            Notification::send($recipient, new GuestCheckedInMailNotification($visit, $visitor));
+        }
     }
 }

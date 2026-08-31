@@ -38,7 +38,7 @@ class VisitCreatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ihr Besuch wurde registriert',
+            subject: __('Ihr Besuch wurde registriert'),
         );
     }
 

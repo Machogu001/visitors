@@ -38,6 +38,30 @@ class DashboardPage extends Component
         $this->expandedParticipantVisitIds = array_values(array_unique($expandedVisitIds));
     }
 
+    public function approve(int $visitId): void
+    {
+        $visit = Visit::query()->findOrFail($visitId);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        app(VisitActionService::class)->approveVisit($visit, $user);
+    }
+
+    public function usher(int $visitId): void
+    {
+        $visit = Visit::query()->findOrFail($visitId);
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        app(VisitActionService::class)->usherVisit($visit, $user);
+    }
+
     public function checkIn(int $visitId, int $visitorId): void
     {
         $this->authorize('viewAny', Visit::class);
@@ -127,6 +151,8 @@ class DashboardPage extends Component
             ->visibleTo($user)
             ->with([
                 'host:id,first_name,name',
+                'department:id,name,receptionist_user_id,has_dedicated_reception,is_finance_department',
+                'department.receptionist:id,first_name,name',
                 'visitors' => function ($query) {
                     $query->orderBy('first_name')->orderBy('name');
                 },
@@ -204,9 +230,20 @@ class DashboardPage extends Component
                 'title' => $visit->title ?: __('Besuch'),
                 'time' => optional($visit->scheduled_from)->format('H:i'),
                 'date' => optional($visit->scheduled_from)->format('d.m.'),
+                'status' => $visit->status,
                 'is_recurring' => filled($visit->recurring_visit_series_id),
                 'recurrence_is_modified' => (bool) $visit->recurrence_is_modified,
                 'host' => trim((string) ($visit->host?->fullName ?? '')) ?: '-',
+                'department' => $visit->department?->name,
+                'has_dedicated_reception' => (bool) ($visit->department?->has_dedicated_reception || $visit->department?->receptionist_user_id),
+                'receptionist_name' => $visit->department?->receptionist?->fullName,
+                'is_ushered' => filled($visit->ushered_at),
+                'ushered_label' => $visit->ushered_at ? $visit->ushered_at->format('H:i') : null,
+                'cheque_number' => $visit->cheque_number,
+                'cheque_amount' => $visit->cheque_amount ? number_format((float) $visit->cheque_amount, 2) : null,
+                'cheque_action' => $visit->cheque_action,
+                'cheque_bank' => $visit->cheque_bank,
+                'is_signed' => filled($visit->signed_at),
                 'notes' => $visit->notes,
                 'visible_participants' => $participants->take(3)->values(),
                 'hidden_participants' => $participants->slice(3)->values(),

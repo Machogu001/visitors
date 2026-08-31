@@ -38,7 +38,7 @@ class VisitCreatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Besuch erfolgreich erstellt',
+            subject: __('Besuch erfolgreich erstellt'),
         );
     }
 

@@ -83,6 +83,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(Department::class, 'department_id'); // Relationship to departments table id
     }
 
+    public function headedDepartments(): HasMany
+    {
+        return $this->hasMany(Department::class, 'head_user_id');
+    }
+
+    public function receptionistDepartments(): HasMany
+    {
+        return $this->hasMany(Department::class, 'receptionist_user_id');
+    }
+
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
@@ -121,6 +131,10 @@ class User extends Authenticatable implements FilamentUser
     protected static function booted(): void
     {
         static::saving(function (self $user): void {
+            if (blank($user->locale)) {
+                $user->locale = config('app.locale', 'en');
+            }
+
             if (blank($user->site_id)) {
                 $user->site_id = $user->department_id
                     ? Department::query()->whereKey($user->department_id)->value('site_id')

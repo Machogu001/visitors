@@ -17,9 +17,9 @@ class SecurityHeaders
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
-        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval'";
+        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com https://ajax.cloudflare.com";
         $styleSrc = "'self' 'unsafe-inline'";
-        $connectSrc = "'self'";
+        $connectSrc = "'self' https://cloudflareinsights.com https://*.cloudflareinsights.com";
 
         if (app()->environment('local')) {
             $scriptSrc .= ' http://localhost:5173';
@@ -36,10 +36,12 @@ class SecurityHeaders
             "base-uri 'self'",
             "frame-ancestors 'self'",
             "form-action 'self'",
-            "img-src 'self' data: blob:",
+            "img-src 'self' data: blob: https:",
             "font-src 'self' data:",
             "script-src {$scriptSrc}",
+            "script-src-elem {$scriptSrc}",
             "style-src {$styleSrc}",
+            "style-src-elem {$styleSrc}",
             "connect-src {$connectSrc}",
         ]));
 

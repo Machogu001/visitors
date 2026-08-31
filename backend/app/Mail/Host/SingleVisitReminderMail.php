@@ -33,7 +33,7 @@ class SingleVisitReminderMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Besuch Erinnerung',
+            subject: __('Besuch Erinnerung'),
         );
     }
 

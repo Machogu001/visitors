@@ -41,7 +41,7 @@ class VisitReminderDailyMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Heutige Besuche',
+            subject: __('Heutige Besuche'),
         );
     }
 

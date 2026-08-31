@@ -30,9 +30,29 @@ class DepartmentsTable
                 TextColumn::make('name')
                     ->label(__('Name'))
                     ->searchable(),
+                TextColumn::make('headUser.name')
+                    ->label(__('Abteilungsleiter'))
+                    ->formatStateUsing(fn ($record) => $record->headUser?->fullName ?? '-')
+                    ->searchable(['first_name', 'name']),
+                TextColumn::make('receptionist.name')
+                    ->label(__('Dedizierter Empfang'))
+                    ->formatStateUsing(fn ($record) => $record->receptionist?->fullName ?? '-')
+                    ->searchable(['first_name', 'name'])
+                    ->toggleable(),
                 TextColumn::make('location')
                     ->label(__('Bereich/Ort'))
                     ->searchable(),
+                IconColumn::make('allow_public_booking')
+                    ->label(__('Buchbar'))
+                    ->boolean(),
+                IconColumn::make('requires_approval')
+                    ->label(__('Freigabepflichtig'))
+                    ->boolean()
+                    ->toggleable(),
+                IconColumn::make('is_finance_department')
+                    ->label(__('Finanzen'))
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_active')
                     ->label(__('Aktiv'))
                     ->boolean(),

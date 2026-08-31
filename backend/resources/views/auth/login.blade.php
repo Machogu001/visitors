@@ -30,7 +30,18 @@
                     {{ __('Login_Textbeschreibung') }}
                 </p>
 
-
+                <div class="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                    <div class="text-sm font-semibold text-primary">{{ __('Sie sind Besucher?') }}</div>
+                    <p class="mt-1 text-xs text-base-content/70">
+                        {{ __('Buchen Sie ganz einfach einen Termin mit einer Abteilungsleitung oder am Empfang.') }}
+                    </p>
+                    <a href="{{ route('public.book') }}" class="btn btn-primary btn-sm mt-3 w-full rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ __('Termin online buchen') }}
+                    </a>
+                </div>
             </div>
 
             <div class="bg-base-100/90 p-7 sm:p-9">

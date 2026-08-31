@@ -22,6 +22,11 @@ class VisitsTable
     {
         return $table
             ->columns([
+                TextColumn::make('booking_reference')
+                    ->label(__('Buchungscode'))
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('site.name')
                     ->label(__('Standort'))
                     ->searchable()
@@ -30,6 +35,13 @@ class VisitsTable
                     ->label(__('Titel'))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('department.name')
+                    ->label(__('Abteilung'))
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('host.fullName')
+                    ->label(__('Host'))
+                    ->searchable(['first_name', 'name']),
                 TextColumn::make('scheduled_from')
                     ->label(__('Beginn'))
                     ->dateTime()

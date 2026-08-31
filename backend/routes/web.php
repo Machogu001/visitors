@@ -10,6 +10,7 @@ use App\Http\Controllers\Monitor\MonitorController;
 use App\Http\Controllers\Monitor\MonitorSlidesController;
 use App\Http\Controllers\Portal\OverviewController;
 use App\Http\Controllers\Portal\VisitController as PortalVisitController;
+use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Reception\DashboardController;
 use App\Http\Controllers\Reception\VisitController as ReceptionVisitController;
 use App\Http\Controllers\Reception\VisitParticipantActionController;
@@ -17,6 +18,7 @@ use App\Http\Middleware\CheckMonitorAutoGeneration;
 use App\Livewire\Portal\CheckInOutBoard;
 use App\Livewire\Portal\VisitShowPage;
 use App\Livewire\Profile\UserPermissionsPage;
+use App\Livewire\Public\BookingPage;
 use App\Support\AuthRedirector;
 use App\Support\UserPreferences;
 use Illuminate\Http\Request;
@@ -28,6 +30,9 @@ Route::get('/', function (Request $request) {
         ? redirect()->to(app(AuthRedirector::class)->pathFor($request->user()))
         : redirect()->route('login');
 })->name('home');
+
+Route::get('/book', BookingPage::class)->name('public.book');
+Route::get('/book/ical/{reference}', [BookingController::class, 'ical'])->name('public.book.ical');
 
 Route::get('/lang', function (Request $request) {
     $locale = UserPreferences::normalizeLocale($request->input('locale'));

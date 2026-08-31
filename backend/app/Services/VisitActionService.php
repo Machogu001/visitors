@@ -128,13 +128,21 @@ class VisitActionService
 
     private function ensureChequeCollectionIsSigned(Visit $visit): void
     {
-        if ($visit->cheque_action !== 'pick_up' || filled($visit->signature_data)) {
+        if ($visit->cheque_action !== 'pick_up') {
             return;
         }
 
-        throw ValidationException::withMessages([
-            'checkout' => __('Cheque collection visits must be signed before check-out.'),
-        ]);
+        $missingDetails = blank($visit->cheque_number)
+            || blank($visit->cheque_amount)
+            || blank($visit->cheque_bank)
+            || blank($visit->cheque_payee_or_drawer)
+            || blank($visit->signature_data);
+
+        if ($missingDetails) {
+            throw ValidationException::withMessages([
+                'checkout' => __('Cheque collection details and visitor signature are required before check-out.'),
+            ]);
+        }
     }
 
     public function approveVisit(Visit $visit, User $actionBy): Visit

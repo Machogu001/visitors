@@ -17,6 +17,7 @@ use App\Services\VisitActionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class AllVisitsPage extends Component
@@ -33,6 +34,8 @@ class AllVisitsPage extends Component
     public string $dateTo = '';
 
     public int $interactionToken = 0;
+
+    public array $chequeCollectionForms = [];
 
     /**
      * @var array<int>
@@ -153,7 +156,13 @@ class AllVisitsPage extends Component
         }
 
         if (filled($participant->pivot->checked_in_at) && blank($participant->pivot->checked_out_at)) {
-            app(VisitActionService::class)->checkOutParticipant($visit, $participant, $user);
+            try {
+                app(VisitActionService::class)->checkOutParticipant($visit, $participant, $user);
+            } catch (ValidationException $exception) {
+                $this->addError('checkout', collect($exception->errors())->flatten()->first() ?: __('Check-out failed.'));
+
+                return;
+            }
 
             Log::channel('web')->info('Visit participant checked out', [
                 'visit_id' => $visitId,
@@ -163,6 +172,47 @@ class AllVisitsPage extends Component
 
             $this->interactionToken++;
         }
+    }
+
+    public function captureChequeCollectionDetails(int $visitId, int $visitorId): void
+    {
+        $this->authorize('viewAny', Visit::class);
+
+        $visit = $this->loadVisitParticipantPair($visitId, $visitorId);
+        $this->authorize('view', $visit);
+        $participant = $visit->visitors->firstWhere('id', $visitorId);
+
+        if (! $participant || $visit->cheque_action !== 'pick_up') {
+            return;
+        }
+
+        $key = (string) $visitId;
+        $this->validate([
+            "chequeCollectionForms.{$key}.cheque_number" => 'required|string|max:100',
+            "chequeCollectionForms.{$key}.cheque_amount" => 'required|numeric|min:0.01',
+            "chequeCollectionForms.{$key}.cheque_bank" => 'required|string|max:150',
+            "chequeCollectionForms.{$key}.signature_data" => 'required|string',
+        ], [
+            "chequeCollectionForms.{$key}.cheque_number.required" => __('Please enter the cheque number.'),
+            "chequeCollectionForms.{$key}.cheque_amount.required" => __('Please enter the cheque amount.'),
+            "chequeCollectionForms.{$key}.cheque_bank.required" => __('Please enter the bank name.'),
+            "chequeCollectionForms.{$key}.signature_data.required" => __('Please sign to acknowledge the cheque details.'),
+        ]);
+
+        $form = $this->chequeCollectionForms[$key];
+        app(VisitActionService::class)->recordChequeDetails($visit, [
+            'cheque_action' => 'pick_up',
+            'cheque_number' => $form['cheque_number'],
+            'cheque_amount' => $form['cheque_amount'],
+            'cheque_bank' => $form['cheque_bank'],
+            'cheque_payee_or_drawer' => $visit->cheque_payee_or_drawer,
+            'signature_data' => $form['signature_data'],
+            'signed_by_name' => trim($participant->first_name.' '.$participant->name),
+        ]);
+
+        unset($this->chequeCollectionForms[$key]);
+        $this->resetErrorBag('checkout');
+        $this->interactionToken++;
     }
 
     public function printBadge(int $visitId, int $visitorId): void
@@ -286,6 +336,14 @@ class AllVisitsPage extends Component
                     'status' => $status['label'],
                     'status_label' => $status['label'],
                     'status_class' => $status['class'],
+                    'cheque_action' => $visit->cheque_action,
+                    'cheque_number' => $visit->cheque_number,
+                    'cheque_amount' => $visit->cheque_amount ? number_format((float) $visit->cheque_amount, 2) : null,
+                    'cheque_bank' => $visit->cheque_bank,
+                    'cheque_payee_or_drawer' => $visit->cheque_payee_or_drawer,
+                    'is_signed' => filled($visit->signed_at),
+                    'needs_cheque_collection_capture' => $visit->cheque_action === 'pick_up'
+                        && (blank($visit->cheque_number) || blank($visit->cheque_amount) || blank($visit->cheque_bank) || blank($visit->signature_data)),
                     'notes' => $visit->notes,
                     'note_text' => trim((string) $visit->notes),
                     'participants' => $participants,

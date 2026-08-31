@@ -566,7 +566,40 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">{{ __('Identification & Contact') }} <span class="text-error">*</span></label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="idNumber" class="block text-xs font-semibold mb-1">
+                                            {{ __('ID Number / Passport') }} <span class="text-error">*</span>
+                                        </label>
+                                        <input
+                                            id="idNumber"
+                                            type="text"
+                                            wire:model="idNumber"
+                                            placeholder="{{ __('e.g., 12345678 or A12345678') }}"
+                                            class="input input-bordered h-12 w-full rounded-xl"
+                                        >
+                                        @error('idNumber') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="phone" class="block text-xs font-semibold mb-1">
+                                            {{ __('Phone Number') }} <span class="text-error">*</span>
+                                        </label>
+                                        <input
+                                            id="phone"
+                                            type="tel"
+                                            wire:model="phone"
+                                            placeholder="{{ __('+254 700 000000 or 0700 000000') }}"
+                                            class="input input-bordered h-12 w-full rounded-xl"
+                                        >
+                                        <p class="text-[11px] text-base-content/60 mt-1">{{ __('Local (07... / 01...) or international (+254...).') }}</p>
+                                        @error('phone') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
                                 <div>
                                     <label for="chequeNumber" class="block text-xs font-semibold mb-1">
                                         {{ __('Cheque Number') }} <span class="text-error">*</span>

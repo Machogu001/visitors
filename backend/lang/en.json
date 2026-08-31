@@ -903,5 +903,9 @@
     "Ankünfte heute": "Arrivals today",
     "Teilnehmende über alle heutigen Termine": "Participants across all today's appointments",
     "Aktuell im Haus": "Currently on site",
-    "Personen mit Check-in ohne Check-out": "People with check-in without check-out"
+    "Personen mit Check-in ohne Check-out": "People with check-in without check-out",
+    "Identification & Contact": "Identification & Contact",
+    "ID Number / Passport": "ID Number / Passport",
+    "Phone number is required for cheque transactions.": "Phone number is required for cheque transactions.",
+    "ID number is required for cheque transactions.": "ID number is required for cheque transactions."
 }

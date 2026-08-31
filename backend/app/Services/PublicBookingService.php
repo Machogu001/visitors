@@ -133,6 +133,7 @@ class PublicBookingService
                 'cheque_amount' => ! empty($data['cheque_amount']) ? (float) $data['cheque_amount'] : null,
                 'cheque_bank' => $data['cheque_bank'] ?? null,
                 'cheque_payee_or_drawer' => $data['cheque_payee_or_drawer'] ?? null,
+                'visitor_id_number' => ! empty($data['id_number']) ? trim($data['id_number']) : null,
                 'signature_data' => $data['signature_data'] ?? null,
                 'signed_by_name' => $hasSignature ? trim($visitor->first_name . ' ' . $visitor->name) : null,
                 'signed_at' => $hasSignature ? now() : null,

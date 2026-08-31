@@ -49,6 +49,7 @@ class Visit extends Model
         'cheque_amount',
         'cheque_bank',
         'cheque_payee_or_drawer',
+        'visitor_id_number',
         'signature_data',
         'signed_at',
         'signed_by_name',

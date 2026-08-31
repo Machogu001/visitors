@@ -49,6 +49,8 @@ class BookingPage extends Component
 
     public string $phone = '';
 
+    public string $idNumber = '';
+
     public string $company = '';
 
     public string $notes = '';
@@ -246,12 +248,17 @@ class BookingPage extends Component
             $rules['chequeAmount'] = 'required|numeric|min:0.01';
             $rules['chequeBank'] = 'required|string|max:150';
             $rules['signatureData'] = 'required|string|min:20';
+            // For cheque transactions, phone and ID number are required
+            $rules['phone'] = ['required', 'string', 'max:50', new ValidPhoneNumber];
+            $rules['idNumber'] = 'required|string|max:100';
 
             $messages['chequeNumber.required'] = __('Please enter the cheque number.');
             $messages['chequeAmount.required'] = __('Please enter the cheque amount.');
             $messages['chequeAmount.numeric'] = __('Please enter a valid monetary amount.');
             $messages['chequeBank.required'] = __('Please enter the bank name.');
             $messages['signatureData.required'] = __('Please sign in the signature box below.');
+            $messages['phone.required'] = __('Phone number is required for cheque transactions.');
+            $messages['idNumber.required'] = __('ID number is required for cheque transactions.');
         }
 
         $this->validate($rules, $messages);
@@ -271,6 +278,7 @@ class BookingPage extends Component
             'name' => $this->lastName,
             'email' => $this->email,
             'phone' => $normalizedPhone,
+            'id_number' => $this->isFinanceBooking ? trim($this->idNumber) : null,
             'company' => $this->company,
             'notes' => $this->notes,
             'cheque_action' => $this->isFinanceBooking ? $this->chequeAction : null,

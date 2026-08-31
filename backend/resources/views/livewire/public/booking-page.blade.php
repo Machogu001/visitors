@@ -492,7 +492,7 @@
 
                         <div>
                             <label for="phone" class="block text-sm font-medium mb-1">
-                                {{ __('Phone number') }}
+                                {{ __('Phone number') }} <span class="text-error">*</span>
                             </label>
                             <input
                                 id="phone"
@@ -508,7 +508,7 @@
 
                     <div>
                         <label for="company" class="block text-sm font-medium mb-1">
-                            {{ __('Company / Organization (optional)') }}
+                            {{ __('Company / Organization') }} <span class="text-error">*</span>
                         </label>
                         <input
                             id="company"
@@ -517,6 +517,7 @@
                             placeholder="{{ __('Acme Corp') }}"
                             class="input input-bordered h-12 w-full rounded-xl"
                         >
+                        @error('company') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div>

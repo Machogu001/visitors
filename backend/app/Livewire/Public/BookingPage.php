@@ -228,8 +228,8 @@ class BookingPage extends Component
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => ['nullable', 'string', 'max:50', new ValidPhoneNumber],
-            'company' => 'nullable|string|max:255',
+            'phone' => ['required', 'string', 'max:50', new ValidPhoneNumber],
+            'company' => 'required|string|max:255',
             'salutation' => 'required|in:mr,ms,not_specified',
             'notes' => 'nullable|string|max:1000',
             'privacyAccepted' => 'accepted',
@@ -240,15 +240,14 @@ class BookingPage extends Component
             'lastName.required' => __('Please enter your last name.'),
             'email.required' => __('Please enter a valid email address.'),
             'email.email' => __('The email address is invalid.'),
+            'phone.required' => __('Phone number is required.'),
+            'company.required' => __('Please enter your company or organization name.'),
             'privacyAccepted.accepted' => __('Please accept the data protection notice.'),
         ];
 
         if ($this->isFinanceBooking) {
-            // For finance department visits, require phone and ID number upfront
-            $rules['phone'] = ['required', 'string', 'max:50', new ValidPhoneNumber];
+            // For finance department visits, also require ID number upfront
             $rules['idNumber'] = 'required|string|max:100';
-
-            $messages['phone.required'] = __('Phone number is required for finance department visits.');
             $messages['idNumber.required'] = __('ID number is required for finance department visits.');
         }
 

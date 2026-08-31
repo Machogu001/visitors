@@ -907,5 +907,7 @@
     "Identification & Contact": "Identification & Contact",
     "ID Number / Passport": "ID Number / Passport",
     "Phone number is required for cheque transactions.": "Phone number is required for cheque transactions.",
-    "ID number is required for cheque transactions.": "ID number is required for cheque transactions."
+    "ID number is required for cheque transactions.": "ID number is required for cheque transactions.",
+    "Phone number is required.": "Phone number is required.",
+    "Please enter your company or organization name.": "Please enter your company or organization name."
 }

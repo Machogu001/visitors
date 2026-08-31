@@ -522,7 +522,7 @@
 
                     <div>
                         <label for="notes" class="block text-sm font-medium mb-1">
-                            {{ __('Topic / Message to the host (optional)') }}
+                            {{ __('Topic / Message to the host') }} <span class="text-error">*</span>
                         </label>
                         <textarea
                             id="notes"
@@ -531,6 +531,7 @@
                             placeholder="{{ __('What is the meeting about or are there any special requirements?') }}"
                             class="textarea textarea-bordered w-full rounded-xl"
                         ></textarea>
+                        @error('notes') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     @if ($this->isFinanceBooking)

@@ -231,7 +231,7 @@ class BookingPage extends Component
             'phone' => ['required', 'string', 'max:50', new ValidPhoneNumber],
             'company' => 'required|string|max:255',
             'salutation' => 'required|in:mr,ms,not_specified',
-            'notes' => 'nullable|string|max:1000',
+            'notes' => 'required|string|max:1000',
             'privacyAccepted' => 'accepted',
         ];
 
@@ -242,6 +242,7 @@ class BookingPage extends Component
             'email.email' => __('The email address is invalid.'),
             'phone.required' => __('Phone number is required.'),
             'company.required' => __('Please enter your company or organization name.'),
+            'notes.required' => __('Please enter the topic or message for the host.'),
             'privacyAccepted.accepted' => __('Please accept the data protection notice.'),
         ];
 

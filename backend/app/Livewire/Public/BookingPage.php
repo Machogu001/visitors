@@ -130,6 +130,25 @@ class BookingPage extends Component
         }
     }
 
+    public function updatedPurpose(string $purpose): void
+    {
+        if ($this->isChequeCollectionPurpose($purpose)) {
+            $this->setChequeAction('pick_up');
+
+            return;
+        }
+
+        if ($purpose === __('Cheque Drop-off (Finance)') || $purpose === 'Cheque Drop-off (Finance)') {
+            $this->setChequeAction('drop_off');
+
+            return;
+        }
+
+        if (! $this->isFinanceBooking) {
+            $this->clearChequeDetails();
+        }
+    }
+
     public function setChequeAction(string $action): void
     {
         if (! in_array($action, ['drop_off', 'pick_up'], true)) {
@@ -183,6 +202,11 @@ class BookingPage extends Component
             || $purpose === 'Cheque Collection (Finance)'
             || $this->isLegacyChequeCollectionPurpose($purpose)
             || (str_contains($normalizedPurpose, 'cheque') && str_contains($normalizedPurpose, 'collection'));
+    }
+
+    public function getShouldCollectChequeDropOffDetailsProperty(): bool
+    {
+        return $this->chequeAction === 'drop_off' && ! $this->isChequeCollectionPurpose($this->purpose);
     }
 
     public function selectDate(string $date): void
@@ -296,7 +320,7 @@ class BookingPage extends Component
     {
         $this->normalizeChequeActionForPurpose();
 
-        $isChequeDropOff = $this->chequeAction === 'drop_off' && ! $this->isChequeCollectionPurpose($this->purpose);
+        $isChequeDropOff = $this->shouldCollectChequeDropOffDetails;
 
         $rules = [
             'firstName' => 'required|string|max:255',

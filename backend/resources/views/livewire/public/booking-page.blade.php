@@ -551,7 +551,7 @@
                                 <div>
                                     <h3 class="font-bold text-base text-base-content">{{ __('Finance Department Cheque Acknowledgement') }}</h3>
                                     <p class="text-xs text-base-content/70">
-                                        {{ $chequeAction === 'drop_off'
+                                        {{ $this->shouldCollectChequeDropOffDetails
                                             ? __('Please record the cheque details and sign below for verification.')
                                             : __('Cheque collection details and signature will be completed with the receptionist when you arrive.') }}
                                     </p>
@@ -612,7 +612,7 @@
                                 </div>
                             </div>
 
-                            @if ($chequeAction === 'drop_off')
+                            @if ($this->shouldCollectChequeDropOffDetails)
                                 <div>
                                     <div>
                                         <label for="chequeNumber" class="block text-xs font-semibold mb-1">

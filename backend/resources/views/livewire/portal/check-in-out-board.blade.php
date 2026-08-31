@@ -119,6 +119,12 @@
                 </div>
             @endif
 
+            @error('checkout')
+                <div class="alert alert-error rounded-2xl shadow-sm">
+                    <span>{{ $message }}</span>
+                </div>
+            @enderror
+
             @if ($errors->any())
                 <div class="alert alert-error rounded-2xl shadow-sm">
                     <span>{{ __('Bitte prüfe die Eingaben für den Walk-in.') }}</span>
@@ -238,6 +244,88 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                @if (!empty($result['needs_cheque_collection_capture']) && $result['can_check_out'])
+                                    <div class="mt-4 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
+                                        <div class="mb-2 font-semibold text-base-content">{{ __('Cheque collection details required before check-out') }}</div>
+                                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+                                            <div>
+                                                <label class="mb-1 block text-xs font-semibold">{{ __('Cheque Number') }} <span class="text-error">*</span></label>
+                                                <input type="text" wire:model="chequeCollectionForms.{{ $result['visit_id'] }}.cheque_number" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. 000452">
+                                                @error('chequeCollectionForms.'.$result['visit_id'].'.cheque_number') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="mb-1 block text-xs font-semibold">{{ __('Amount (KES)') }} <span class="text-error">*</span></label>
+                                                <input type="number" step="0.01" wire:model="chequeCollectionForms.{{ $result['visit_id'] }}.cheque_amount" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. 45000.00">
+                                                @error('chequeCollectionForms.'.$result['visit_id'].'.cheque_amount') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="mb-1 block text-xs font-semibold">{{ __('Bank Name') }} <span class="text-error">*</span></label>
+                                                <input type="text" wire:model="chequeCollectionForms.{{ $result['visit_id'] }}.cheque_bank" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. Equity Bank, KCB, NCBA">
+                                                @error('chequeCollectionForms.'.$result['visit_id'].'.cheque_bank') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="mb-1 block text-xs font-semibold">{{ __('Cheque Payee / Beneficiary Name') }} <span class="text-error">*</span></label>
+                                                <input type="text" wire:model="chequeCollectionForms.{{ $result['visit_id'] }}.cheque_payee_or_drawer" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. John Doe / Company Name">
+                                                @error('chequeCollectionForms.'.$result['visit_id'].'.cheque_payee_or_drawer') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 space-y-1.5" x-data="{
+                                            isDrawing: false,
+                                            hasSignature: false,
+                                            ctx: null,
+                                            init() {
+                                                this.ctx = this.$refs.signatureCanvas.getContext('2d');
+                                                this.ctx.strokeStyle = '#1e293b';
+                                                this.ctx.lineWidth = 2.5;
+                                                this.ctx.lineCap = 'round';
+                                            },
+                                            point(event) {
+                                                const rect = this.$refs.signatureCanvas.getBoundingClientRect();
+                                                const source = event.touches ? event.touches[0] : event;
+                                                return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+                                            },
+                                            start(event) {
+                                                this.isDrawing = true;
+                                                const p = this.point(event);
+                                                this.ctx.beginPath();
+                                                this.ctx.moveTo(p.x, p.y);
+                                            },
+                                            draw(event) {
+                                                if (!this.isDrawing) return;
+                                                event.preventDefault();
+                                                const p = this.point(event);
+                                                this.ctx.lineTo(p.x, p.y);
+                                                this.ctx.stroke();
+                                                this.hasSignature = true;
+                                                $wire.set('chequeCollectionForms.{{ $result['visit_id'] }}.signature_data', this.$refs.signatureCanvas.toDataURL('image/png'));
+                                            },
+                                            stop() {
+                                                this.isDrawing = false;
+                                            },
+                                            clear() {
+                                                this.ctx.clearRect(0, 0, this.$refs.signatureCanvas.width, this.$refs.signatureCanvas.height);
+                                                this.hasSignature = false;
+                                                $wire.set('chequeCollectionForms.{{ $result['visit_id'] }}.signature_data', '');
+                                            }
+                                        }">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label class="mb-1 block text-xs font-semibold">{{ __('Visitor Signature') }} <span class="text-error">*</span></label>
+                                                <button type="button" class="btn btn-ghost btn-xs text-error" @click="clear()">{{ __('Clear Signature') }}</button>
+                                            </div>
+                                            <div class="relative overflow-hidden rounded-lg border-2 border-dashed border-warning/50 bg-base-100 touch-none">
+                                                <canvas x-ref="signatureCanvas" width="520" height="110" class="block h-24 w-full cursor-crosshair" @mousedown="start($event)" @mousemove="draw($event)" @mouseup="stop()" @mouseleave="stop()" @touchstart="start($event)" @touchmove="draw($event)" @touchend="stop()"></canvas>
+                                                <div x-show="!hasSignature" class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-medium text-base-content/40">
+                                                    {{ __('Sign here before check-out') }}
+                                                </div>
+                                            </div>
+                                            @error('chequeCollectionForms.'.$result['visit_id'].'.signature_data') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                                        </div>
+                                        <button type="button" class="btn btn-warning btn-xs mt-3 rounded-lg" wire:click="captureChequeCollectionDetails({{ $result['visit_id'] }}, {{ $result['visitor_id'] }})" wire:loading.attr="disabled">
+                                            {{ __('Save cheque collection details') }}
+                                        </button>
+                                    </div>
+                                @endif
                             </article>
                         @endforeach
                     </div>

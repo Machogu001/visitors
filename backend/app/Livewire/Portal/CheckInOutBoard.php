@@ -52,6 +52,8 @@ class CheckInOutBoard extends Component
         'company' => '',
     ];
 
+    public array $chequeCollectionForms = [];
+
     public function mount(): void
     {
         $this->authorize('viewAny', Visit::class);
@@ -117,7 +119,54 @@ class CheckInOutBoard extends Component
 
         [$visit, $visitor, $user] = $this->resolveActionContext($visitId, $visitorId);
 
-        $this->visitActionService()->checkOutParticipant($visit, $visitor, $user);
+        try {
+            $this->visitActionService()->checkOutParticipant($visit, $visitor, $user);
+        } catch (ValidationException $exception) {
+            $this->addError('checkout', collect($exception->errors())->flatten()->first() ?: __('Check-out failed.'));
+
+            return;
+        }
+    }
+
+    public function captureChequeCollectionDetails(int $visitId, int $visitorId): void
+    {
+        $this->authorize('viewAny', Visit::class);
+        $this->authorize('checkOut', Visitor::class);
+
+        [$visit, $visitor] = $this->resolveActionContext($visitId, $visitorId);
+
+        if ($visit->cheque_action !== 'pick_up') {
+            return;
+        }
+
+        $key = (string) $visitId;
+        $this->validate([
+            "chequeCollectionForms.{$key}.cheque_number" => 'required|string|max:100',
+            "chequeCollectionForms.{$key}.cheque_amount" => 'required|numeric|min:0.01',
+            "chequeCollectionForms.{$key}.cheque_bank" => 'required|string|max:150',
+            "chequeCollectionForms.{$key}.cheque_payee_or_drawer" => 'required|string|max:200',
+            "chequeCollectionForms.{$key}.signature_data" => 'required|string',
+        ], [
+            "chequeCollectionForms.{$key}.cheque_number.required" => __('Please enter the cheque number.'),
+            "chequeCollectionForms.{$key}.cheque_amount.required" => __('Please enter the cheque amount.'),
+            "chequeCollectionForms.{$key}.cheque_bank.required" => __('Please enter the bank name.'),
+            "chequeCollectionForms.{$key}.cheque_payee_or_drawer.required" => __('Please enter the cheque payee or beneficiary name.'),
+            "chequeCollectionForms.{$key}.signature_data.required" => __('Please sign to acknowledge the cheque details.'),
+        ]);
+
+        $form = $this->chequeCollectionForms[$key];
+        $this->visitActionService()->recordChequeDetails($visit, [
+            'cheque_action' => 'pick_up',
+            'cheque_number' => $form['cheque_number'],
+            'cheque_amount' => $form['cheque_amount'],
+            'cheque_bank' => $form['cheque_bank'],
+            'cheque_payee_or_drawer' => $form['cheque_payee_or_drawer'],
+            'signature_data' => $form['signature_data'],
+            'signed_by_name' => trim($visitor->first_name.' '.$visitor->name),
+        ]);
+
+        unset($this->chequeCollectionForms[$key]);
+        $this->resetErrorBag('checkout');
     }
 
     public function printBadge(int $visitId, int $visitorId): void
@@ -375,7 +424,10 @@ class CheckInOutBoard extends Component
             'cheque_amount' => $visit->cheque_amount ? number_format((float) $visit->cheque_amount, 2) : null,
             'cheque_action' => $visit->cheque_action,
             'cheque_bank' => $visit->cheque_bank,
+            'cheque_payee_or_drawer' => $visit->cheque_payee_or_drawer,
             'is_signed' => filled($visit->signed_at),
+            'needs_cheque_collection_capture' => $visit->cheque_action === 'pick_up'
+                && (blank($visit->cheque_number) || blank($visit->cheque_amount) || blank($visit->cheque_bank) || blank($visit->cheque_payee_or_drawer) || blank($visit->signature_data)),
             'can_check_in' => $canCheckIn && (blank($pivot?->checked_in_at) || filled($pivot?->checked_out_at)),
             'check_in_label' => filled($pivot?->checked_out_at) ? __('Erneut einchecken') : __('Check-in'),
             'can_check_out' => $canOperate && filled($pivot?->checked_in_at) && blank($pivot?->checked_out_at),

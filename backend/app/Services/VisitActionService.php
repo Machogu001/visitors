@@ -209,7 +209,6 @@ class VisitActionService
             Notification::send($recipient, new GuestCheckedInMailNotification($visit, $visitor));
         }
     }
-}
 
     /**
      * Reschedule a visit to a new date and time.
@@ -224,7 +223,7 @@ class VisitActionService
     public function rescheduleVisit(Visit $visit, User $actionBy, string $newDate, string $newTime, int $durationMinutes = 0): Visit
     {
         $timezone = $visit->site->timezone ?: config('app.timezone', 'Africa/Nairobi');
-        
+
         // Parse new schedule in the site's timezone, convert to UTC
         $newScheduledFrom = \Illuminate\Support\Carbon::parse($newDate.' '.$newTime, $timezone)->setTimezone('UTC');
         $duration = $durationMinutes ?: ($visit->scheduled_until->diffInMinutes($visit->scheduled_from));
@@ -252,3 +251,4 @@ class VisitActionService
 
         return $visit->refresh();
     }
+}

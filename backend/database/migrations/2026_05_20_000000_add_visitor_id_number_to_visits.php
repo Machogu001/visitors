@@ -15,14 +15,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('visits', function (Blueprint $table) {
-            $table->string('visitor_id_number')->nullable()->after('visitor_phone_normalized');
+            if (! Schema::hasColumn('visits', 'visitor_id_number')) {
+                $column = $table->string('visitor_id_number')->nullable();
+
+                if (Schema::hasColumn('visits', 'cheque_payee_or_drawer')) {
+                    $column->after('cheque_payee_or_drawer');
+                }
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('visits', function (Blueprint $table) {
-            $table->dropColumn('visitor_id_number');
+            if (Schema::hasColumn('visits', 'visitor_id_number')) {
+                $table->dropColumn('visitor_id_number');
+            }
         });
     }
 };

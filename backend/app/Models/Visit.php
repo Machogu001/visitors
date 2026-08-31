@@ -133,6 +133,11 @@ class Visit extends Model
         return $this->belongsTo(User::class, 'ushered_by_user_id');
     }
 
+    public function rescheduledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rescheduled_by_user_id');
+    }
+
     public function retentionHoldBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'retention_hold_by_user_id');
@@ -235,8 +240,3 @@ class Visit extends Model
         return $visitors->take($limit)->values();
     }
 }
-
-    public function rescheduledBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'rescheduled_by_user_id');
-    }

@@ -178,39 +178,35 @@ graph TD
     
     BOOK --> DEPT{Department<br/>is_finance_department?}
     
-    DEPT -->|No| STD["Standard appointment<br/>No cheque fields"]
-    DEPT -->|Yes| FIN_BOOK["Finance Booking<br/>Optional cheque form"]
+    DEPT -->|No| STD["Standard appointment<br/>No special requirements"]
+    DEPT -->|Yes| FIN_BOOK["Finance Booking<br/>Required fields:<br/>- Phone<br/>- ID Number"]
     
-    FIN_BOOK --> CHEQUE_OPT{Cheque<br/>Transaction?}
+    STD --> STEP5["Step 5: Your Details<br/>- First Name<br/>- Last Name<br/>- Email<br/>- Phone (optional)<br/>- Company (optional)"]
     
-    CHEQUE_OPT -->|No| NO_CHEQUE["Finance visit without cheque<br/>e.g., inquiry, payment,<br/>document pickup"]
-    CHEQUE_OPT -->|Yes| CHEQUE_FORM["Cheque Details Form<br/>- Action: pick_up/drop_off<br/>- Number<br/>- Amount<br/>- Bank<br/>- Payee"]
+    FIN_BOOK --> STEP5_FIN["Step 5: Your Details<br/>- First Name (required)<br/>- Last Name (required)<br/>- Email (required)<br/>- Phone (required)<br/>- ID Number (required)<br/>- Company (optional)"]
     
-    NO_CHEQUE --> SUBMIT["Submit Booking"]
-    CHEQUE_FORM --> SIG["Digital Signature<br/>Canvas 2D<br/>Touch & Mouse support"]
-    SIG --> SUBMIT
+    STEP5 --> CONFIRM["Booking Confirmation<br/>Appointment scheduled"]
+    STEP5_FIN --> CONFIRM
     
-    SUBMIT --> RECORD["PublicBookingService<br/>createBooking<br/>Stores cheque fields if provided"]
+    CONFIRM --> CHECKIN["Check-In at Reception<br/>Badge printed<br/>Visitor announced"]
     
-    RECORD --> DB["Visit Model<br/>Cheque fields nullable<br/>+ signature_data nullable"]
+    CHECKIN --> WITH_DEPT{Finance<br/>Department?}
     
-    DB --> GATE{Requires<br/>Approval?}
+    WITH_DEPT -->|No| INTERACT["Visitor interacts with host"]
+    WITH_DEPT -->|Yes| INTERACT
     
-    GATE -->|Yes| PENDING["Status: PendingApproval"]
-    GATE -->|No| PLANNED["Status: Planned"]
+    INTERACT --> CHECKOUT["Check-Out at Reception<br/>Badge archived"]
     
-    PENDING --> CHECKIN["Check-In at Reception"]
-    PLANNED --> CHECKIN
+    CHECKOUT --> FINCHECK{Finance<br/>Department?}
     
-    CHECKIN --> WITH_CHEQUE{Has Cheque<br/>Details?}
+    FINCHECK -->|No| COMPLETE["Visit Complete"]
+    FINCHECK -->|Yes| CHEQUE_CAPTURE["Cheque Capture Modal<br/>Receptionist fills:<br/>- Action: pick_up/drop_off<br/>- Cheque Number<br/>- Amount<br/>- Bank<br/>- Payee/Drawer"]
     
-    WITH_CHEQUE -->|Yes| CHEQUE_DISPLAY["Reception Dashboard<br/>Shows cheque for tracking<br/>- pick_up/drop_off indicator<br/>- Amount, Bank, Payee"]
-    WITH_CHEQUE -->|No| NO_CHEQUE_DISPLAY["Reception Dashboard<br/>Finance visit<br/>No cheque tracking needed"]
+    CHEQUE_CAPTURE --> SIG["Visitor Signs<br/>Canvas 2D signature<br/>Digital capture"]
     
-    CHEQUE_DISPLAY --> CHECKOUT["Check-Out"]
-    NO_CHEQUE_DISPLAY --> CHECKOUT
+    SIG --> SAVE["Save Cheque Details<br/>Store cheque_action<br/>cheque_number<br/>cheque_amount<br/>cheque_bank<br/>cheque_payee_or_drawer<br/>signature_data"]
     
-    STD --> DONE["Standard Visit<br/>No cheque tracking"]
+    SAVE --> COMPLETE
 ```
 
 ## 5. Database Schema - Key Entities
@@ -424,6 +420,14 @@ graph LR
 ---
 
 ## Architecture Principles
+
+### Finance Cheque Service Workflow
+- **Booking Phase**: Visitor provides ID number and phone (required for finance dept)
+- **Check-In Phase**: Standard check-in, badge printed
+- **Check-Out Phase**: Finance receptionists capture cheque details and signature
+- **Capture Fields**: Action (pick-up/drop-off), cheque number, amount, bank, payee/drawer
+- **Digital Signature**: Canvas 2D signature pad, stored as base64 in database
+- **Compliance**: All visitor info + cheque details + signature retained per retention policy
 
 ### Multi-Tier Visitor Workflow
 - **Public Self-Service**: Booking via public wizard with optional approval gates

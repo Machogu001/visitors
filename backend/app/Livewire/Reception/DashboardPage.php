@@ -134,11 +134,13 @@ class DashboardPage extends Component
             "chequeCollectionForms.{$key}.cheque_number" => 'required|string|max:100',
             "chequeCollectionForms.{$key}.cheque_amount" => 'required|numeric|min:0.01',
             "chequeCollectionForms.{$key}.cheque_bank" => 'required|string|max:150',
+            "chequeCollectionForms.{$key}.cheque_payee_or_drawer" => 'required|string|max:200',
             "chequeCollectionForms.{$key}.signature_data" => 'required|string',
         ], [
             "chequeCollectionForms.{$key}.cheque_number.required" => __('Please enter the cheque number.'),
             "chequeCollectionForms.{$key}.cheque_amount.required" => __('Please enter the cheque amount.'),
             "chequeCollectionForms.{$key}.cheque_bank.required" => __('Please enter the bank name.'),
+            "chequeCollectionForms.{$key}.cheque_payee_or_drawer.required" => __('Please enter the cheque payee or beneficiary name.'),
             "chequeCollectionForms.{$key}.signature_data.required" => __('Please sign to acknowledge the cheque details.'),
         ]);
 
@@ -148,7 +150,7 @@ class DashboardPage extends Component
             'cheque_number' => $form['cheque_number'],
             'cheque_amount' => $form['cheque_amount'],
             'cheque_bank' => $form['cheque_bank'],
-            'cheque_payee_or_drawer' => $visit->cheque_payee_or_drawer,
+            'cheque_payee_or_drawer' => $form['cheque_payee_or_drawer'],
             'signature_data' => $form['signature_data'],
             'signed_by_name' => trim($participant->first_name.' '.$participant->name),
         ]);

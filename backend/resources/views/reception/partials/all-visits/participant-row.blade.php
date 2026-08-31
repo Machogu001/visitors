@@ -102,10 +102,7 @@
     @if (!empty($visit['needs_cheque_collection_capture']) && $canCheckOut)
         <div class="col-span-full rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
             <div class="mb-2 font-semibold text-base-content">{{ __('Cheque collection details required before check-out') }}</div>
-            <div class="mb-3 text-xs text-base-content/70">
-                {{ __('Payee / Beneficiary: :name', ['name' => $visit['cheque_payee_or_drawer'] ?: '—']) }}
-            </div>
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <label class="mb-1 block text-xs font-semibold">{{ __('Cheque Number') }} <span class="text-error">*</span></label>
                     <input type="text" wire:model="chequeCollectionForms.{{ $visit['id'] }}.cheque_number" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. 000452">
@@ -120,6 +117,11 @@
                     <label class="mb-1 block text-xs font-semibold">{{ __('Bank Name') }} <span class="text-error">*</span></label>
                     <input type="text" wire:model="chequeCollectionForms.{{ $visit['id'] }}.cheque_bank" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. Equity Bank, KCB, NCBA">
                     @error('chequeCollectionForms.'.$visit['id'].'.cheque_bank') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">{{ __('Cheque Payee / Beneficiary Name') }} <span class="text-error">*</span></label>
+                    <input type="text" wire:model="chequeCollectionForms.{{ $visit['id'] }}.cheque_payee_or_drawer" class="input input-bordered input-sm w-full rounded-lg" placeholder="e.g. John Doe / Company Name">
+                    @error('chequeCollectionForms.'.$visit['id'].'.cheque_payee_or_drawer') <span class="mt-1 block text-xs text-error">{{ $message }}</span> @enderror
                 </div>
             </div>
             <div class="mt-3 space-y-1.5" x-data="{

@@ -754,22 +754,8 @@
                                     @error('signatureData') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             @else
-                                <div>
-                                    <label for="chequePayee" class="block text-xs font-semibold mb-1">
-                                        {{ __('Cheque Payee / Beneficiary Name') }} <span class="text-error">*</span>
-                                    </label>
-                                    <input
-                                        id="chequePayee"
-                                        type="text"
-                                        wire:model="chequePayee"
-                                        placeholder="e.g. John Doe / Company Name"
-                                        class="input input-bordered h-11 w-full rounded-xl text-sm"
-                                    >
-                                    @error('chequePayee') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-
                                 <div class="alert alert-info text-sm rounded-xl py-3">
-                                    {{ __('Cheque details and visitor signature will be completed by the receptionist during cheque collection.') }}
+                                    {{ __('Cheque number, amount, bank, beneficiary name, and visitor signature will be completed by the receptionist during cheque collection.') }}
                                 </div>
                             @endif
                         </div>

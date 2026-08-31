@@ -492,7 +492,7 @@
 
                         <div>
                             <label for="phone" class="block text-sm font-medium mb-1">
-                                {{ __('Phone number') }} <span class="text-red-600 font-bold text-base" aria-hidden="true">*</span>
+                                {{ __('Phone number') }} <span style="color: #dc2626; font-weight: 800; font-size: 1.125rem; line-height: 1;" aria-hidden="true">*</span>
                             </label>
                             <input
                                 id="phone"
@@ -509,7 +509,7 @@
 
                     <div>
                         <label for="company" class="block text-sm font-medium mb-1">
-                            {{ __('Company / Organization') }} <span class="text-red-600 font-bold text-base" aria-hidden="true">*</span>
+                            {{ __('Company / Organization') }} <span style="color: #dc2626; font-weight: 800; font-size: 1.125rem; line-height: 1;" aria-hidden="true">*</span>
                         </label>
                         <input
                             id="company"

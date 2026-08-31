@@ -492,7 +492,7 @@
 
                         <div>
                             <label for="phone" class="block text-sm font-medium mb-1">
-                                {{ __('Phone number') }} <span class="text-error">*</span>
+                                {{ __('Phone number') }} <span class="text-red-600 font-bold text-base" aria-hidden="true">*</span>
                             </label>
                             <input
                                 id="phone"
@@ -500,6 +500,7 @@
                                 wire:model="phone"
                                 placeholder="{{ __('+254 700 000000 or 0700 000000') }}"
                                 class="input input-bordered h-12 w-full rounded-xl"
+                                required
                             >
                             <p class="text-[11px] text-base-content/60 mt-1">{{ __('Local (07... / 01...) or international (+254...) formats.') }}</p>
                             @error('phone') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
@@ -508,7 +509,7 @@
 
                     <div>
                         <label for="company" class="block text-sm font-medium mb-1">
-                            {{ __('Company / Organization') }} <span class="text-error">*</span>
+                            {{ __('Company / Organization') }} <span class="text-red-600 font-bold text-base" aria-hidden="true">*</span>
                         </label>
                         <input
                             id="company"
@@ -516,13 +517,14 @@
                             wire:model="company"
                             placeholder="{{ __('Acme Corp') }}"
                             class="input input-bordered h-12 w-full rounded-xl"
+                            required
                         >
                         @error('company') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label for="notes" class="block text-sm font-medium mb-1">
-                            {{ __('Topic / Message to the host') }} <span class="text-error">*</span>
+                            {{ __('Topic / Message to the host') }} <span class="text-red-600 font-bold text-base" aria-hidden="true">*</span>
                         </label>
                         <textarea
                             id="notes"
@@ -530,6 +532,7 @@
                             rows="3"
                             placeholder="{{ __('What is the meeting about or are there any special requirements?') }}"
                             class="textarea textarea-bordered w-full rounded-xl"
+                            required
                         ></textarea>
                         @error('notes') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>

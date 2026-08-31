@@ -174,7 +174,9 @@ class BookingPage extends Component
                 ]);
             } else {
                 $this->validate([
-                    'purpose' => 'nullable|string|max:255',
+                    'purpose' => 'required|string|max:255',
+                ], [
+                    'purpose.required' => __('Please select or enter the occasion of your visit.'),
                 ]);
             }
 

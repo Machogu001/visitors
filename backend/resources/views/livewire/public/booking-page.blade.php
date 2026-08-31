@@ -230,7 +230,9 @@
 
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium mb-2">{{ __('Occasion / Category') }}</label>
+                                <label class="block text-sm font-medium mb-2">
+                                    {{ __('Occasion / Category') }} <span style="color: #dc2626; font-weight: 800; font-size: 1.125rem; line-height: 1;" aria-hidden="true">*</span>
+                                </label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     @php
                                         $purposes = [
@@ -253,10 +255,11 @@
                                         </button>
                                     @endforeach
                                 </div>
+                                @error('purpose') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
-                                <label for="custom_purpose" class="block text-sm font-medium mb-1">{{ __('Or custom reason (optional)') }}</label>
+                                <label for="custom_purpose" class="block text-sm font-medium mb-1">{{ __('Or custom reason') }}</label>
                                 <input
                                     id="custom_purpose"
                                     type="text"

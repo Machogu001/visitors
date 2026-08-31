@@ -55,6 +55,7 @@ class VisitActionService
     public function checkOutParticipant(Visit $visit, Visitor $visitor, User $actionBy): Visitor
     {
         $this->ensureVisitCanBeOperated($visit);
+        $this->ensureChequeCollectionIsSigned($visit);
 
         $participant = $this->resolveParticipant($visit, $visitor);
 
@@ -122,6 +123,17 @@ class VisitActionService
 
         throw ValidationException::withMessages([
             'visit' => __('Dieser Besuch kann operativ nicht mehr bearbeitet werden.'),
+        ]);
+    }
+
+    private function ensureChequeCollectionIsSigned(Visit $visit): void
+    {
+        if ($visit->cheque_action !== 'pick_up' || filled($visit->signature_data)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'checkout' => __('Cheque collection visits must be signed before check-out.'),
         ]);
     }
 

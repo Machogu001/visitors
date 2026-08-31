@@ -17,11 +17,13 @@ use App\Models\Visit;
 use App\Models\Visitor;
 use App\Notifications\Guest\VisitCreated as GuestVisitCreatedNotification;
 use App\Notifications\Host\VisitCreated as HostVisitCreatedNotification;
+use App\Rules\ValidPhoneNumber;
 use App\Support\PhoneNumber;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class PublicBookingService
@@ -40,14 +42,16 @@ class PublicBookingService
      *     first_name: string,
      *     name: string,
      *     email: string,
-     *     phone?: ?string,
-     *     company?: ?string,
+      *     phone: string,
+      *     company: string,
      *     salutation?: ?string,
-     *     notes?: ?string
+      *     notes: string
      * } $data
      */
     public function createBooking(array $data): Visit
     {
+          $data = $this->validateBookingData($data);
+
         return DB::transaction(function () use ($data): Visit {
             $site = Site::query()->findOrFail($data['site_id']);
             $timezone = $site->timezone ?: config('app.timezone', 'Africa/Nairobi');
@@ -154,6 +158,27 @@ class PublicBookingService
         } while (Visit::query()->where('booking_reference', $reference)->exists());
 
         return $reference;
+    }
+
+    private function validateBookingData(array $data): array
+    {
+        foreach (['phone', 'company', 'notes'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
+        Validator::make($data, [
+            'phone' => ['required', 'string', 'max:50', new ValidPhoneNumber],
+            'company' => ['required', 'string', 'max:255'],
+            'notes' => ['required', 'string', 'max:1000'],
+        ], [
+            'phone.required' => __('Phone number is required.'),
+            'company.required' => __('Please enter your company or organization name.'),
+            'notes.required' => __('Please enter the topic or message for the host.'),
+        ])->validate();
+
+        return $data;
     }
 
     private function sendNotificationsSafely(Visit $visit, Visitor $visitor, User $host): void

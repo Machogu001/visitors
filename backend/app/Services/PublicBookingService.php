@@ -45,7 +45,14 @@ class PublicBookingService
       *     phone: string,
       *     company: string,
      *     salutation?: ?string,
-      *     notes: string
+    *     notes: string,
+    *     cheque_action?: ?string,
+    *     cheque_number?: ?string,
+    *     cheque_amount?: mixed,
+    *     cheque_bank?: ?string,
+    *     cheque_payee_or_drawer?: ?string,
+    *     signature_data?: ?string,
+    *     signed_by_name?: ?string
      * } $data
      */
     public function createBooking(array $data): Visit
@@ -105,6 +112,7 @@ class PublicBookingService
             );
 
             $purpose = $data['purpose'] ?? ($department ? $department->name : __('General Appointment'));
+            $isChequeDropOff = ($data['cheque_action'] ?? null) === 'drop_off';
             $title = sprintf(
                 '%s: %s %s (%s)',
                 __('Appointment'),
@@ -132,6 +140,14 @@ class PublicBookingService
                 'is_walk_in' => false,
                 'notes' => ! empty($data['notes']) ? trim($data['notes']) : null,
                 'visitor_id_number' => ! empty($data['id_number']) ? trim($data['id_number']) : null,
+                'cheque_action' => $data['cheque_action'] ?? null,
+                'cheque_number' => $isChequeDropOff ? trim($data['cheque_number']) : null,
+                'cheque_amount' => $isChequeDropOff ? (float) $data['cheque_amount'] : null,
+                'cheque_bank' => $isChequeDropOff ? trim($data['cheque_bank']) : null,
+                'cheque_payee_or_drawer' => $isChequeDropOff ? trim($data['cheque_payee_or_drawer']) : null,
+                'signature_data' => $isChequeDropOff ? $data['signature_data'] : null,
+                'signed_at' => $isChequeDropOff ? now() : null,
+                'signed_by_name' => $isChequeDropOff ? trim($data['signed_by_name'] ?? '') : null,
             ]);
 
             $visit->visitors()->attach($visitor->id);
@@ -162,20 +178,36 @@ class PublicBookingService
 
     private function validateBookingData(array $data): array
     {
-        foreach (['phone', 'company', 'notes'] as $field) {
+        foreach (['phone', 'company', 'notes', 'cheque_action', 'cheque_number', 'cheque_amount', 'cheque_bank', 'cheque_payee_or_drawer', 'signature_data', 'signed_by_name'] as $field) {
             if (isset($data[$field]) && is_string($data[$field])) {
                 $data[$field] = trim($data[$field]);
             }
         }
 
-        Validator::make($data, [
+        $rules = [
             'phone' => ['required', 'string', 'max:50', new ValidPhoneNumber],
             'company' => ['required', 'string', 'max:255'],
             'notes' => ['required', 'string', 'max:1000'],
-        ], [
+            'cheque_action' => ['nullable', 'in:drop_off,pick_up'],
+        ];
+
+        if (($data['cheque_action'] ?? null) === 'drop_off') {
+            $rules['cheque_number'] = ['required', 'string', 'max:100'];
+            $rules['cheque_amount'] = ['required', 'numeric', 'min:0.01'];
+            $rules['cheque_bank'] = ['required', 'string', 'max:150'];
+            $rules['cheque_payee_or_drawer'] = ['required', 'string', 'max:200'];
+            $rules['signature_data'] = ['required', 'string'];
+        }
+
+        Validator::make($data, $rules, [
             'phone.required' => __('Phone number is required.'),
             'company.required' => __('Please enter your company or organization name.'),
             'notes.required' => __('Please enter the topic or message for the host.'),
+            'cheque_number.required' => __('Please enter the cheque number.'),
+            'cheque_amount.required' => __('Please enter the cheque amount.'),
+            'cheque_bank.required' => __('Please enter the bank name.'),
+            'cheque_payee_or_drawer.required' => __('Please enter the drawer or account name.'),
+            'signature_data.required' => __('Please sign to acknowledge the cheque details.'),
         ])->validate();
 
         return $data;

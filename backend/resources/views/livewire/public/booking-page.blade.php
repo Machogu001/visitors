@@ -549,7 +549,11 @@
                                 </svg>
                                 <div>
                                     <h3 class="font-bold text-base text-base-content">{{ __('Finance Department Cheque Acknowledgement') }}</h3>
-                                    <p class="text-xs text-base-content/70">{{ __('Please record the cheque details and sign below for verification.') }}</p>
+                                    <p class="text-xs text-base-content/70">
+                                        {{ $chequeAction === 'drop_off'
+                                            ? __('Please record the cheque details and sign below for verification.')
+                                            : __('Cheque collection details and signature will be completed with the receptionist when you arrive.') }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -607,145 +611,152 @@
                                 </div>
                             </div>
 
-                            <div>
+                            @if ($chequeAction === 'drop_off')
                                 <div>
-                                    <label for="chequeNumber" class="block text-xs font-semibold mb-1">
-                                        {{ __('Cheque Number') }} <span class="text-error">*</span>
-                                    </label>
-                                    <input
-                                        id="chequeNumber"
-                                        type="text"
-                                        wire:model="chequeNumber"
-                                        placeholder="e.g. 000452"
-                                        class="input input-bordered h-11 w-full rounded-xl text-sm"
-                                    >
-                                    @error('chequeNumber') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
+                                    <div>
+                                        <label for="chequeNumber" class="block text-xs font-semibold mb-1">
+                                            {{ __('Cheque Number') }} <span class="text-error">*</span>
+                                        </label>
+                                        <input
+                                            id="chequeNumber"
+                                            type="text"
+                                            wire:model="chequeNumber"
+                                            placeholder="e.g. 000452"
+                                            class="input input-bordered h-11 w-full rounded-xl text-sm"
+                                        >
+                                        @error('chequeNumber') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
 
-                                <div>
-                                    <label for="chequeAmount" class="block text-xs font-semibold mb-1">
-                                        {{ __('Amount (KES)') }} <span class="text-error">*</span>
-                                    </label>
-                                    <input
-                                        id="chequeAmount"
-                                        type="number"
-                                        step="0.01"
-                                        wire:model="chequeAmount"
-                                        placeholder="e.g. 45000.00"
-                                        class="input input-bordered h-11 w-full rounded-xl text-sm font-mono"
-                                    >
-                                    @error('chequeAmount') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
+                                    <div>
+                                        <label for="chequeAmount" class="block text-xs font-semibold mb-1">
+                                            {{ __('Amount (KES)') }} <span class="text-error">*</span>
+                                        </label>
+                                        <input
+                                            id="chequeAmount"
+                                            type="number"
+                                            step="0.01"
+                                            wire:model="chequeAmount"
+                                            placeholder="e.g. 45000.00"
+                                            class="input input-bordered h-11 w-full rounded-xl text-sm font-mono"
+                                        >
+                                        @error('chequeAmount') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
 
-                                <div>
-                                    <label for="chequeBank" class="block text-xs font-semibold mb-1">
-                                        {{ __('Bank Name') }} <span class="text-error">*</span>
-                                    </label>
-                                    <input
-                                        id="chequeBank"
-                                        type="text"
-                                        wire:model="chequeBank"
-                                        placeholder="e.g. Equity Bank, KCB, NCBA"
-                                        class="input input-bordered h-11 w-full rounded-xl text-sm"
-                                    >
-                                    @error('chequeBank') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
-
-                            <div>
-                                <label for="chequePayee" class="block text-xs font-semibold mb-1">
-                                    {{ $chequeAction === 'pick_up' ? __('Cheque Payee / Beneficiary Name') : __('Drawer / Account Name') }}
-                                </label>
-                                <input
-                                    id="chequePayee"
-                                    type="text"
-                                    wire:model="chequePayee"
-                                    placeholder="e.g. John Doe / Company Name"
-                                    class="input input-bordered h-11 w-full rounded-xl text-sm"
-                                >
-                            </div>
-
-                            {{-- Digital Signature Pad --}}
-                            <div
-                                x-data="{
-                                    isDrawing: false,
-                                    canvas: null,
-                                    ctx: null,
-                                    hasSignature: false,
-                                    init() {
-                                        this.canvas = this.$refs.sigCanvas;
-                                        this.ctx = this.canvas.getContext('2d');
-                                        this.ctx.strokeStyle = '#1e293b';
-                                        this.ctx.lineWidth = 2.5;
-                                        this.ctx.lineCap = 'round';
-                                    },
-                                    startDraw(e) {
-                                        this.isDrawing = true;
-                                        const rect = this.canvas.getBoundingClientRect();
-                                        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-                                        const y = (e.clientY || e.touches[0].clientY) - rect.top;
-                                        this.ctx.beginPath();
-                                        this.ctx.moveTo(x, y);
-                                    },
-                                    draw(e) {
-                                        if (!this.isDrawing) return;
-                                        e.preventDefault();
-                                        const rect = this.canvas.getBoundingClientRect();
-                                        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-                                        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-                                        this.ctx.lineTo(x, y);
-                                        this.ctx.stroke();
-                                        this.hasSignature = true;
-                                    },
-                                    stopDraw() {
-                                        if (!this.isDrawing) return;
-                                        this.isDrawing = false;
-                                        if (this.hasSignature) {
-                                            const dataUrl = this.canvas.toDataURL('image/png');
-                                            $wire.set('signatureData', dataUrl);
-                                        }
-                                    },
-                                    clear() {
-                                        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                                        this.hasSignature = false;
-                                        $wire.set('signatureData', '');
-                                    }
-                                }"
-                                class="space-y-1.5"
-                            >
-                                <div class="flex items-center justify-between">
-                                    <label class="block text-xs font-semibold">
-                                        {{ __('Visitor Signature') }} <span class="text-error">*</span>
-                                    </label>
-                                    <button
-                                        type="button"
-                                        @click="clear()"
-                                        class="btn btn-ghost btn-xs text-error font-semibold"
-                                    >
-                                        {{ __('Clear Signature') }}
-                                    </button>
-                                </div>
-
-                                <div class="relative border-2 border-dashed border-primary/40 rounded-xl bg-base-100 overflow-hidden touch-none">
-                                    <canvas
-                                        x-ref="sigCanvas"
-                                        width="600"
-                                        height="140"
-                                        class="w-full h-32 block cursor-crosshair"
-                                        @mousedown="startDraw($event)"
-                                        @mousemove="draw($event)"
-                                        @mouseup="stopDraw()"
-                                        @mouseleave="stopDraw()"
-                                        @touchstart="startDraw($event)"
-                                        @touchmove="draw($event)"
-                                        @touchend="stopDraw()"
-                                    ></canvas>
-                                    <div x-show="!hasSignature" class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-base-content/40 font-medium">
-                                        {{ __('✍️ Sign here with your finger or mouse to acknowledge cheque details') }}
+                                    <div>
+                                        <label for="chequeBank" class="block text-xs font-semibold mb-1">
+                                            {{ __('Bank Name') }} <span class="text-error">*</span>
+                                        </label>
+                                        <input
+                                            id="chequeBank"
+                                            type="text"
+                                            wire:model="chequeBank"
+                                            placeholder="e.g. Equity Bank, KCB, NCBA"
+                                            class="input input-bordered h-11 w-full rounded-xl text-sm"
+                                        >
+                                        @error('chequeBank') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
-                                @error('signatureData') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
+
+                                <div>
+                                    <label for="chequePayee" class="block text-xs font-semibold mb-1">
+                                        {{ __('Drawer / Account Name') }} <span class="text-error">*</span>
+                                    </label>
+                                    <input
+                                        id="chequePayee"
+                                        type="text"
+                                        wire:model="chequePayee"
+                                        placeholder="e.g. John Doe / Company Name"
+                                        class="input input-bordered h-11 w-full rounded-xl text-sm"
+                                    >
+                                    @error('chequePayee') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- Digital Signature Pad --}}
+                                <div
+                                    x-data="{
+                                        isDrawing: false,
+                                        canvas: null,
+                                        ctx: null,
+                                        hasSignature: false,
+                                        init() {
+                                            this.canvas = this.$refs.sigCanvas;
+                                            this.ctx = this.canvas.getContext('2d');
+                                            this.ctx.strokeStyle = '#1e293b';
+                                            this.ctx.lineWidth = 2.5;
+                                            this.ctx.lineCap = 'round';
+                                        },
+                                        startDraw(e) {
+                                            this.isDrawing = true;
+                                            const rect = this.canvas.getBoundingClientRect();
+                                            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                                            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                                            this.ctx.beginPath();
+                                            this.ctx.moveTo(x, y);
+                                        },
+                                        draw(e) {
+                                            if (!this.isDrawing) return;
+                                            e.preventDefault();
+                                            const rect = this.canvas.getBoundingClientRect();
+                                            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                                            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+                                            this.ctx.lineTo(x, y);
+                                            this.ctx.stroke();
+                                            this.hasSignature = true;
+                                        },
+                                        stopDraw() {
+                                            if (!this.isDrawing) return;
+                                            this.isDrawing = false;
+                                            if (this.hasSignature) {
+                                                const dataUrl = this.canvas.toDataURL('image/png');
+                                                $wire.set('signatureData', dataUrl);
+                                            }
+                                        },
+                                        clear() {
+                                            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                                            this.hasSignature = false;
+                                            $wire.set('signatureData', '');
+                                        }
+                                    }"
+                                    class="space-y-1.5"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-semibold">
+                                            {{ __('Visitor Signature') }} <span class="text-error">*</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            @click="clear()"
+                                            class="btn btn-ghost btn-xs text-error font-semibold"
+                                        >
+                                            {{ __('Clear Signature') }}
+                                        </button>
+                                    </div>
+
+                                    <div class="relative border-2 border-dashed border-primary/40 rounded-xl bg-base-100 overflow-hidden touch-none">
+                                        <canvas
+                                            x-ref="sigCanvas"
+                                            width="600"
+                                            height="140"
+                                            class="w-full h-32 block cursor-crosshair"
+                                            @mousedown="startDraw($event)"
+                                            @mousemove="draw($event)"
+                                            @mouseup="stopDraw()"
+                                            @mouseleave="stopDraw()"
+                                            @touchstart="startDraw($event)"
+                                            @touchmove="draw($event)"
+                                            @touchend="stopDraw()"
+                                        ></canvas>
+                                        <div x-show="!hasSignature" class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-base-content/40 font-medium">
+                                            {{ __('✍️ Sign here with your finger or mouse to acknowledge cheque details') }}
+                                        </div>
+                                    </div>
+                                    @error('signatureData') <span class="text-error text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            @else
+                                <div class="alert alert-info text-sm rounded-xl py-3">
+                                    {{ __('Cheque details and visitor signature will be completed by the receptionist during cheque collection.') }}
+                                </div>
+                            @endif
                         </div>
                     @endif
 

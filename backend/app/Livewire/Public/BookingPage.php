@@ -123,6 +123,8 @@ class BookingPage extends Component
 
         if (in_array($chequeAction, ['drop_off', 'pick_up'], true)) {
             $this->setChequeAction($chequeAction);
+        } elseif ($this->isLegacyChequeCollectionPurpose($purpose)) {
+            $this->setChequeAction('pick_up');
         } elseif (! $this->isFinanceBooking) {
             $this->clearChequeDetails();
         }
@@ -152,6 +154,25 @@ class BookingPage extends Component
         $this->chequeBank = '';
         $this->chequePayee = '';
         $this->signatureData = '';
+    }
+
+    private function normalizeChequeActionForPurpose(): void
+    {
+        if ($this->purpose === __('Cheque Drop-off (Finance)')) {
+            $this->chequeAction = 'drop_off';
+
+            return;
+        }
+
+        if ($this->purpose === __('Cheque Collection (Finance)') || $this->isLegacyChequeCollectionPurpose($this->purpose)) {
+            $this->setChequeAction('pick_up');
+        }
+    }
+
+    private function isLegacyChequeCollectionPurpose(string $purpose): bool
+    {
+        return $purpose === __('Cheque Collection / Drop-off (Finance)')
+            || $purpose === 'Cheque Collection / Drop-off (Finance)';
     }
 
     public function selectDate(string $date): void
@@ -263,6 +284,8 @@ class BookingPage extends Component
 
     public function submitBooking(PublicBookingService $bookingService): void
     {
+        $this->normalizeChequeActionForPurpose();
+
         $rules = [
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',

@@ -561,16 +561,16 @@
                             <div>
                                 <label class="block text-sm font-medium mb-2">{{ __('Cheque Transaction Type') }} <span class="text-error">*</span></label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'drop_off' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
-                                        <input type="radio" wire:model.live="chequeAction" wire:click="setChequeAction('drop_off')" value="drop_off" class="radio radio-primary radio-sm">
+                                    <label wire:click="setChequeAction('drop_off')" class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'drop_off' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
+                                        <input type="radio" wire:model.live="chequeAction" value="drop_off" class="radio radio-primary radio-sm">
                                         <div>
                                             <div class="text-sm">{{ __('Drop-off Cheque (Submission / Payment)') }}</div>
                                             <div class="text-[11px] text-base-content/60">{{ __('You are submitting a cheque to our Finance Department') }}</div>
                                         </div>
                                     </label>
 
-                                    <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'pick_up' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
-                                        <input type="radio" wire:model.live="chequeAction" wire:click="setChequeAction('pick_up')" value="pick_up" class="radio radio-primary radio-sm">
+                                    <label wire:click="setChequeAction('pick_up')" class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'pick_up' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
+                                        <input type="radio" wire:model.live="chequeAction" value="pick_up" class="radio radio-primary radio-sm">
                                         <div>
                                             <div class="text-sm">{{ __('Pick-up Cheque (Collection)') }}</div>
                                             <div class="text-[11px] text-base-content/60">{{ __('You are collecting a payment cheque from Finance') }}</div>

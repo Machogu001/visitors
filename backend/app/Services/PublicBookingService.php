@@ -185,6 +185,24 @@ class PublicBookingService
             }
         }
 
+        $purpose = $data['purpose'] ?? null;
+
+        if ($purpose === __('Cheque Drop-off (Finance)') || $purpose === 'Cheque Drop-off (Finance)') {
+            $data['cheque_action'] = 'drop_off';
+        }
+
+        if ($purpose === __('Cheque Collection (Finance)')
+            || $purpose === 'Cheque Collection (Finance)'
+            || $purpose === __('Cheque Collection / Drop-off (Finance)')
+            || $purpose === 'Cheque Collection / Drop-off (Finance)') {
+            $data['cheque_action'] = 'pick_up';
+            $data['cheque_number'] = null;
+            $data['cheque_amount'] = null;
+            $data['cheque_bank'] = null;
+            $data['signature_data'] = null;
+            $data['signed_by_name'] = null;
+        }
+
         $rules = [
             'phone' => ['required', 'string', 'max:50', new ValidPhoneNumber],
             'company' => ['required', 'string', 'max:255'],

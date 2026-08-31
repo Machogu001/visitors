@@ -94,6 +94,7 @@ class PublicBookingService
                     'name' => trim($data['name']),
                     'salutation' => $salutation,
                     'phone' => $phone,
+                    'id_number' => ! empty($data['id_number']) ? trim($data['id_number']) : null,
                     'company' => ! empty($data['company']) ? trim($data['company']) : null,
                     'created_by_user_id' => $host->id,
                 ]
@@ -111,8 +112,6 @@ class PublicBookingService
             $requiresApproval = $department ? ($department->requires_approval ?? true) : false;
             $initialStatus = $requiresApproval ? VisitStatusEnum::PendingApproval->value : VisitStatusEnum::Planned->value;
 
-            $hasSignature = ! empty($data['signature_data']);
-
             $visit = Visit::create([
                 'booking_reference' => $bookingReference,
                 'site_id' => $site->id,
@@ -128,15 +127,7 @@ class PublicBookingService
                 'is_confidential' => false,
                 'is_walk_in' => false,
                 'notes' => ! empty($data['notes']) ? trim($data['notes']) : null,
-                'cheque_action' => $data['cheque_action'] ?? null,
-                'cheque_number' => $data['cheque_number'] ?? null,
-                'cheque_amount' => ! empty($data['cheque_amount']) ? (float) $data['cheque_amount'] : null,
-                'cheque_bank' => $data['cheque_bank'] ?? null,
-                'cheque_payee_or_drawer' => $data['cheque_payee_or_drawer'] ?? null,
                 'visitor_id_number' => ! empty($data['id_number']) ? trim($data['id_number']) : null,
-                'signature_data' => $data['signature_data'] ?? null,
-                'signed_by_name' => $hasSignature ? trim($visitor->first_name . ' ' . $visitor->name) : null,
-                'signed_at' => $hasSignature ? now() : null,
             ]);
 
             $visit->visitors()->attach($visitor->id);

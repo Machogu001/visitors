@@ -244,21 +244,12 @@ class BookingPage extends Component
         ];
 
         if ($this->isFinanceBooking) {
-            $rules['chequeNumber'] = 'required|string|max:100';
-            $rules['chequeAmount'] = 'required|numeric|min:0.01';
-            $rules['chequeBank'] = 'required|string|max:150';
-            $rules['signatureData'] = 'required|string|min:20';
-            // For cheque transactions, phone and ID number are required
+            // For finance department visits, require phone and ID number upfront
             $rules['phone'] = ['required', 'string', 'max:50', new ValidPhoneNumber];
             $rules['idNumber'] = 'required|string|max:100';
 
-            $messages['chequeNumber.required'] = __('Please enter the cheque number.');
-            $messages['chequeAmount.required'] = __('Please enter the cheque amount.');
-            $messages['chequeAmount.numeric'] = __('Please enter a valid monetary amount.');
-            $messages['chequeBank.required'] = __('Please enter the bank name.');
-            $messages['signatureData.required'] = __('Please sign in the signature box below.');
-            $messages['phone.required'] = __('Phone number is required for cheque transactions.');
-            $messages['idNumber.required'] = __('ID number is required for cheque transactions.');
+            $messages['phone.required'] = __('Phone number is required for finance department visits.');
+            $messages['idNumber.required'] = __('ID number is required for finance department visits.');
         }
 
         $this->validate($rules, $messages);
@@ -278,15 +269,9 @@ class BookingPage extends Component
             'name' => $this->lastName,
             'email' => $this->email,
             'phone' => $normalizedPhone,
-            'id_number' => $this->isFinanceBooking ? trim($this->idNumber) : null,
+            'id_number' => trim($this->idNumber) ?: null,
             'company' => $this->company,
             'notes' => $this->notes,
-            'cheque_action' => $this->isFinanceBooking ? $this->chequeAction : null,
-            'cheque_number' => $this->isFinanceBooking ? trim($this->chequeNumber) : null,
-            'cheque_amount' => $this->isFinanceBooking ? (float) $this->chequeAmount : null,
-            'cheque_bank' => $this->isFinanceBooking ? trim($this->chequeBank) : null,
-            'cheque_payee_or_drawer' => $this->isFinanceBooking ? trim($this->chequePayee) : null,
-            'signature_data' => $this->isFinanceBooking ? $this->signatureData : null,
         ]);
 
         $this->confirmedReference = $visit->booking_reference;

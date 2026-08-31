@@ -32,6 +32,7 @@ class Visitor extends Model
         'salutation',
         'email',
         'phone',
+        'id_number',
         'company',
         'notes',
         'created_by_user_id',

@@ -898,5 +898,10 @@
     "Visitor:": "Visitor:",
     "Save to calendar (.ics)": "Save to calendar (.ics)",
     "Book another appointment": "Book another appointment",
-    "Back to login page": "Back to login page"
+    "Back to login page": "Back to login page",
+    "Ausweise vorzubereiten": "Badges to prepare",
+    "Ankünfte heute": "Arrivals today",
+    "Teilnehmende über alle heutigen Termine": "Participants across all today's appointments",
+    "Aktuell im Haus": "Currently on site",
+    "Personen mit Check-in ohne Check-out": "People with check-in without check-out"
 }

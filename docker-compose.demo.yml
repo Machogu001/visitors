@@ -44,7 +44,7 @@ x-app-environment: &app-environment
   BRANDING_MONITOR_FALLBACK_SUBHEADING: We're glad you're here.
   BRANDING_MONITOR_SLIDE_HEADING: Welcome!
   GOTENBERG_URL: http://gotenberg:3000
-  GITHUB_REPO_URL: https://github.com/P0etInc0de/VisitorPortal
+  GITHUB_REPO_URL: https://github.com/Machogu001/visitors
   AUTO_MIGRATE: "true"
   AUTO_SEED: "true"
   FORCE_SEED: "false"

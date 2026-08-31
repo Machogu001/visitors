@@ -12,6 +12,7 @@ use App\Filament\Resources\Visits\VisitResource;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
+use App\Filament\Actions\RescheduleVisitAction;
 class ViewVisit extends ViewRecord
 {
     protected static string $resource = VisitResource::class;
@@ -20,6 +21,7 @@ class ViewVisit extends ViewRecord
     {
         return [
             EditAction::make(),
+                    RescheduleVisitAction::make(),
         ];
     }
 }

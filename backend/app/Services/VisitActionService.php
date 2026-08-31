@@ -210,3 +210,45 @@ class VisitActionService
         }
     }
 }
+
+    /**
+     * Reschedule a visit to a new date and time.
+     *
+     * @param  Visit  $visit  The visit to reschedule
+     * @param  User  $actionBy  The user performing the reschedule (typically host)
+     * @param  string  $newDate  New date in YYYY-MM-DD format
+     * @param  string  $newTime  New time in HH:MM format
+     * @param  int  $durationMinutes  Duration in minutes (default: keep original)
+     * @return Visit  Updated visit with new schedule
+     */
+    public function rescheduleVisit(Visit $visit, User $actionBy, string $newDate, string $newTime, int $durationMinutes = 0): Visit
+    {
+        $timezone = $visit->site->timezone ?: config('app.timezone', 'Africa/Nairobi');
+        
+        // Parse new schedule in the site's timezone, convert to UTC
+        $newScheduledFrom = \Illuminate\Support\Carbon::parse($newDate.' '.$newTime, $timezone)->setTimezone('UTC');
+        $duration = $durationMinutes ?: ($visit->scheduled_until->diffInMinutes($visit->scheduled_from));
+        $newScheduledUntil = $newScheduledFrom->copy()->addMinutes($duration);
+
+        // Update the visit with new schedule
+        $visit->update([
+            'scheduled_from' => $newScheduledFrom,
+            'scheduled_until' => $newScheduledUntil,
+            'rescheduled_at' => now(),
+            'rescheduled_by_user_id' => $actionBy->id,
+        ]);
+
+        // Notify all visitors about the reschedule
+        $visit->loadMissing(['visitors', 'host', 'department', 'site']);
+        foreach ($visit->visitors as $visitor) {
+            try {
+                if ($visitor->email) {
+                    $visitor->notify(new \App\Notifications\Guest\VisitRescheduled($visit));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('mail')->warning('Failed sending visit reschedule notification: '.$e->getMessage());
+            }
+        }
+
+        return $visit->refresh();
+    }

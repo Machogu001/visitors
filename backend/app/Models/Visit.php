@@ -45,6 +45,8 @@ class Visit extends Model
         'ushered_at',
         'ushered_by_user_id',
         'cheque_action',
+            'rescheduled_at',
+            'rescheduled_by_user_id',
         'cheque_number',
         'cheque_amount',
         'cheque_bank',
@@ -71,6 +73,7 @@ class Visit extends Model
         'ushered_at' => 'datetime',
         'signed_at' => 'datetime',
         'cheque_amount' => 'decimal:2',
+            'rescheduled_at' => 'datetime',
         'recurrence_original_scheduled_from' => 'datetime',
         'recurrence_is_modified' => 'boolean',
         'is_confidential' => 'boolean',
@@ -232,3 +235,8 @@ class Visit extends Model
         return $visitors->take($limit)->values();
     }
 }
+
+    public function rescheduledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rescheduled_by_user_id');
+    }

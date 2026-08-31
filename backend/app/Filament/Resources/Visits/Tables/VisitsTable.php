@@ -16,6 +16,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+use App\Filament\Actions\RescheduleVisitAction;
 class VisitsTable
 {
     public static function configure(Table $table): Table
@@ -85,6 +86,7 @@ class VisitsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                            RescheduleVisitAction::make(),
             ])
             ->toolbarActions([
                 CreateAction::make(),

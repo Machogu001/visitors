@@ -179,23 +179,36 @@ graph TD
     BOOK --> DEPT{Department<br/>is_finance_department?}
     
     DEPT -->|No| STD["Standard appointment<br/>No cheque fields"]
-    DEPT -->|Yes| FIN_BOOK["Finance Booking<br/>Show cheque form"]
+    DEPT -->|Yes| FIN_BOOK["Finance Booking<br/>Optional cheque form"]
     
-    FIN_BOOK --> CHEQUE_FORM["Cheque Details Form<br/>- Action: pick_up/drop_off<br/>- Number<br/>- Amount<br/>- Bank<br/>- Payee"]
+    FIN_BOOK --> CHEQUE_OPT{Cheque<br/>Transaction?}
     
+    CHEQUE_OPT -->|No| NO_CHEQUE["Finance visit without cheque<br/>e.g., inquiry, payment,<br/>document pickup"]
+    CHEQUE_OPT -->|Yes| CHEQUE_FORM["Cheque Details Form<br/>- Action: pick_up/drop_off<br/>- Number<br/>- Amount<br/>- Bank<br/>- Payee"]
+    
+    NO_CHEQUE --> SUBMIT["Submit Booking"]
     CHEQUE_FORM --> SIG["Digital Signature<br/>Canvas 2D<br/>Touch & Mouse support"]
+    SIG --> SUBMIT
     
-    SIG --> SUBMIT["Submit Booking"]
+    SUBMIT --> RECORD["PublicBookingService<br/>createBooking<br/>Stores cheque fields if provided"]
     
-    SUBMIT --> RECORD["recordChequeDetails<br/>Stores:<br/>- cheque_number<br/>- cheque_amount<br/>- cheque_bank<br/>- cheque_payee<br/>- signature_data base64"]
+    RECORD --> DB["Visit Model<br/>Cheque fields nullable<br/>+ signature_data nullable"]
     
-    RECORD --> DB["Visit Model<br/>Cheque fields<br/>+ signature_data"]
+    DB --> GATE{Requires<br/>Approval?}
     
-    DB --> DISPLAY["Reception Dashboard<br/>Shows cheque status"]
+    GATE -->|Yes| PENDING["Status: PendingApproval"]
+    GATE -->|No| PLANNED["Status: Planned"]
     
-    DISPLAY --> FULFILLED["Mark Cheque<br/>Pick-up Complete<br/>or<br/>Drop-off Received"]
+    PENDING --> CHECKIN["Check-In at Reception"]
+    PLANNED --> CHECKIN
     
-    FULFILLED --> ARCHIVE["Cheque transaction<br/>archived with signature"]
+    CHECKIN --> WITH_CHEQUE{Has Cheque<br/>Details?}
+    
+    WITH_CHEQUE -->|Yes| CHEQUE_DISPLAY["Reception Dashboard<br/>Shows cheque for tracking<br/>- pick_up/drop_off indicator<br/>- Amount, Bank, Payee"]
+    WITH_CHEQUE -->|No| NO_CHEQUE_DISPLAY["Reception Dashboard<br/>Finance visit<br/>No cheque tracking needed"]
+    
+    CHEQUE_DISPLAY --> CHECKOUT["Check-Out"]
+    NO_CHEQUE_DISPLAY --> CHECKOUT
     
     STD --> DONE["Standard Visit<br/>No cheque tracking"]
 ```

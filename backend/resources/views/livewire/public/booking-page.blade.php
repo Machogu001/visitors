@@ -236,22 +236,23 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     @php
                                         $purposes = [
-                                            __('Cheque Collection / Drop-off (Finance)'),
-                                            __('General consultation & information'),
-                                            __('Supplier & service provider appointment'),
-                                            __('Technician / Facility service'),
-                                            __('Job interview'),
-                                            __('Site inspection / Guided tour'),
-                                            __('Other request'),
+                                            ['label' => __('Cheque Collection (Finance)'), 'cheque_action' => 'pick_up'],
+                                            ['label' => __('Cheque Drop-off (Finance)'), 'cheque_action' => 'drop_off'],
+                                            ['label' => __('General consultation & information')],
+                                            ['label' => __('Supplier & service provider appointment')],
+                                            ['label' => __('Technician / Facility service')],
+                                            ['label' => __('Job interview')],
+                                            ['label' => __('Site inspection / Guided tour')],
+                                            ['label' => __('Other request')],
                                         ];
                                     @endphp
                                     @foreach ($purposes as $item)
                                         <button
                                             type="button"
-                                            wire:click="$set('purpose', '{{ $item }}')"
-                                            class="p-3 text-left border-2 rounded-xl text-sm transition-all {{ $purpose === $item ? 'border-primary bg-primary/5 font-semibold text-primary' : 'border-base-300 hover:border-base-content/30 bg-base-100' }}"
+                                            wire:click="selectPurpose(@js($item['label']), @js($item['cheque_action'] ?? null))"
+                                            class="p-3 text-left border-2 rounded-xl text-sm transition-all {{ $purpose === $item['label'] ? 'border-primary bg-primary/5 font-semibold text-primary' : 'border-base-300 hover:border-base-content/30 bg-base-100' }}"
                                         >
-                                            {{ $item }}
+                                            {{ $item['label'] }}
                                         </button>
                                     @endforeach
                                 </div>
@@ -561,7 +562,7 @@
                                 <label class="block text-sm font-medium mb-2">{{ __('Cheque Transaction Type') }} <span class="text-error">*</span></label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'drop_off' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
-                                        <input type="radio" wire:model.live="chequeAction" value="drop_off" class="radio radio-primary radio-sm">
+                                        <input type="radio" wire:model.live="chequeAction" wire:click="setChequeAction('drop_off')" value="drop_off" class="radio radio-primary radio-sm">
                                         <div>
                                             <div class="text-sm">{{ __('Drop-off Cheque (Submission / Payment)') }}</div>
                                             <div class="text-[11px] text-base-content/60">{{ __('You are submitting a cheque to our Finance Department') }}</div>
@@ -569,7 +570,7 @@
                                     </label>
 
                                     <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all {{ $chequeAction === 'pick_up' ? 'border-primary bg-primary/10 font-semibold' : 'border-base-300 bg-base-100' }}">
-                                        <input type="radio" wire:model.live="chequeAction" value="pick_up" class="radio radio-primary radio-sm">
+                                        <input type="radio" wire:model.live="chequeAction" wire:click="setChequeAction('pick_up')" value="pick_up" class="radio radio-primary radio-sm">
                                         <div>
                                             <div class="text-sm">{{ __('Pick-up Cheque (Collection)') }}</div>
                                             <div class="text-[11px] text-base-content/60">{{ __('You are collecting a payment cheque from Finance') }}</div>

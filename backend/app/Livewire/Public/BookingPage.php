@@ -117,6 +117,43 @@ class BookingPage extends Component
         $this->selectedTime = '';
     }
 
+    public function selectPurpose(string $purpose, ?string $chequeAction = null): void
+    {
+        $this->purpose = $purpose;
+
+        if (in_array($chequeAction, ['drop_off', 'pick_up'], true)) {
+            $this->setChequeAction($chequeAction);
+        } elseif (! $this->isFinanceBooking) {
+            $this->clearChequeDetails();
+        }
+    }
+
+    public function setChequeAction(string $action): void
+    {
+        if (! in_array($action, ['drop_off', 'pick_up'], true)) {
+            return;
+        }
+
+        $this->chequeAction = $action;
+
+        if ($action === 'pick_up') {
+            $this->chequeNumber = '';
+            $this->chequeAmount = '';
+            $this->chequeBank = '';
+            $this->signatureData = '';
+        }
+    }
+
+    private function clearChequeDetails(): void
+    {
+        $this->chequeAction = 'pick_up';
+        $this->chequeNumber = '';
+        $this->chequeAmount = '';
+        $this->chequeBank = '';
+        $this->chequePayee = '';
+        $this->signatureData = '';
+    }
+
     public function selectDate(string $date): void
     {
         $this->selectedDate = $date;

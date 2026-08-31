@@ -20,7 +20,13 @@ The application processes potentially personal data such as visitor names, compa
 ## Features
 
 - Visitor pre-registration and visit management
-- Reception dashboard for daily visits
+- **Multi-tier visitor workflow**: Director's Executive Reception tier, standard reception, and finance cheque service
+- **Public booking wizard**: Self-service appointment scheduling with approval gates, digital signatures, and cheque capture for finance transactions
+- **Approval workflow**: Department-level approval gates with rejection handling and reason tracking
+- **Finance cheque service**: Digitally signed cheque submission with pick-up/drop-off workflows
+- **Multi-receptionist support**: Dedicated reception staff per department with targeted check-in notifications
+- **Ushering workflow**: Receptionist-to-department host hand-off tracking
+- Reception dashboard for daily visits with approval and ushering status
 - Visitor check-in and check-out
 - Printable visitor badges as PDFs
 - Check-in/out overview for reception desks
@@ -30,6 +36,7 @@ The application processes potentially personal data such as visitor names, compa
 - Optional generic OpenID Connect SSO for enterprise identity providers
 - Admin panel for users, departments, roles, permissions, visitors, visits, monitors, and monitor slides
 - Host notifications by email and in-app notifications
+- **Receptionist notifications**: Check-in alerts routed to designated department receptionists
 - Queue and scheduler support for background tasks
 - Light, dark, system, and true black themes
 - White-label branding via environment configuration
@@ -261,6 +268,14 @@ For production-like deployments, explicitly review these demo defaults:
 - [Known Limitations](docs/known-limitations.md)
 
 ## Roadmap
+
+Recent additions (v2.0):
+- ✅ Multi-tier visitor workflow with approval gates and ushering
+- ✅ Public self-service booking wizard with signature capture
+- ✅ Finance cheque service with digital signatures and pick-up/drop-off tracking
+- ✅ Dedicated receptionist assignments per department
+- ✅ Multi-receptionist check-in notifications
+- ✅ Comprehensive English localization
 
 Possible next steps:
 

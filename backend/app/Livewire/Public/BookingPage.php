@@ -164,7 +164,7 @@ class BookingPage extends Component
             return;
         }
 
-        if ($this->purpose === __('Cheque Collection (Finance)') || $this->isLegacyChequeCollectionPurpose($this->purpose)) {
+        if ($this->isChequeCollectionPurpose($this->purpose)) {
             $this->setChequeAction('pick_up');
         }
     }
@@ -173,6 +173,16 @@ class BookingPage extends Component
     {
         return $purpose === __('Cheque Collection / Drop-off (Finance)')
             || $purpose === 'Cheque Collection / Drop-off (Finance)';
+    }
+
+    private function isChequeCollectionPurpose(string $purpose): bool
+    {
+        $normalizedPurpose = strtolower($purpose);
+
+        return $purpose === __('Cheque Collection (Finance)')
+            || $purpose === 'Cheque Collection (Finance)'
+            || $this->isLegacyChequeCollectionPurpose($purpose)
+            || (str_contains($normalizedPurpose, 'cheque') && str_contains($normalizedPurpose, 'collection'));
     }
 
     public function selectDate(string $date): void
@@ -286,6 +296,8 @@ class BookingPage extends Component
     {
         $this->normalizeChequeActionForPurpose();
 
+        $isChequeDropOff = $this->chequeAction === 'drop_off' && ! $this->isChequeCollectionPurpose($this->purpose);
+
         $rules = [
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
@@ -315,7 +327,7 @@ class BookingPage extends Component
             $messages['idNumber.required'] = __('ID number is required for finance department visits.');
             $rules['chequePayee'] = 'required|string|max:200';
 
-            if ($this->chequeAction === 'drop_off') {
+            if ($isChequeDropOff) {
                 $rules['chequeNumber'] = 'required|string|max:100';
                 $rules['chequeAmount'] = 'required|numeric|min:0.01';
                 $rules['chequeBank'] = 'required|string|max:150';
@@ -353,12 +365,12 @@ class BookingPage extends Component
             'company' => $this->company,
             'notes' => $this->notes,
             'cheque_action' => $this->isFinanceBooking ? $this->chequeAction : null,
-            'cheque_number' => $this->chequeAction === 'drop_off' ? trim($this->chequeNumber) : null,
-            'cheque_amount' => $this->chequeAction === 'drop_off' ? $this->chequeAmount : null,
-            'cheque_bank' => $this->chequeAction === 'drop_off' ? trim($this->chequeBank) : null,
+            'cheque_number' => $isChequeDropOff ? trim($this->chequeNumber) : null,
+            'cheque_amount' => $isChequeDropOff ? $this->chequeAmount : null,
+            'cheque_bank' => $isChequeDropOff ? trim($this->chequeBank) : null,
             'cheque_payee_or_drawer' => $this->isFinanceBooking ? trim($this->chequePayee) : null,
-            'signature_data' => $this->chequeAction === 'drop_off' ? $this->signatureData : null,
-            'signed_by_name' => $this->chequeAction === 'drop_off' ? trim($this->firstName.' '.$this->lastName) : null,
+            'signature_data' => $isChequeDropOff ? $this->signatureData : null,
+            'signed_by_name' => $isChequeDropOff ? trim($this->firstName.' '.$this->lastName) : null,
         ]);
 
         $this->confirmedReference = $visit->booking_reference;

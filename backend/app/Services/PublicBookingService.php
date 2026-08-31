@@ -194,7 +194,8 @@ class PublicBookingService
         if ($purpose === __('Cheque Collection (Finance)')
             || $purpose === 'Cheque Collection (Finance)'
             || $purpose === __('Cheque Collection / Drop-off (Finance)')
-            || $purpose === 'Cheque Collection / Drop-off (Finance)') {
+            || $purpose === 'Cheque Collection / Drop-off (Finance)'
+            || (is_string($purpose) && str_contains(strtolower($purpose), 'cheque') && str_contains(strtolower($purpose), 'collection'))) {
             $data['cheque_action'] = 'pick_up';
             $data['cheque_number'] = null;
             $data['cheque_amount'] = null;

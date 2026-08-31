@@ -113,6 +113,7 @@ class PublicBookingService
 
             $purpose = $data['purpose'] ?? ($department ? $department->name : __('General Appointment'));
             $isChequeDropOff = ($data['cheque_action'] ?? null) === 'drop_off';
+            $isChequeBooking = in_array($data['cheque_action'] ?? null, ['drop_off', 'pick_up'], true);
             $title = sprintf(
                 '%s: %s %s (%s)',
                 __('Appointment'),
@@ -144,7 +145,7 @@ class PublicBookingService
                 'cheque_number' => $isChequeDropOff ? trim($data['cheque_number']) : null,
                 'cheque_amount' => $isChequeDropOff ? (float) $data['cheque_amount'] : null,
                 'cheque_bank' => $isChequeDropOff ? trim($data['cheque_bank']) : null,
-                'cheque_payee_or_drawer' => $isChequeDropOff ? trim($data['cheque_payee_or_drawer']) : null,
+                'cheque_payee_or_drawer' => $isChequeBooking ? trim($data['cheque_payee_or_drawer']) : null,
                 'signature_data' => $isChequeDropOff ? $data['signature_data'] : null,
                 'signed_at' => $isChequeDropOff ? now() : null,
                 'signed_by_name' => $isChequeDropOff ? trim($data['signed_by_name'] ?? '') : null,
@@ -197,6 +198,8 @@ class PublicBookingService
             $rules['cheque_bank'] = ['required', 'string', 'max:150'];
             $rules['cheque_payee_or_drawer'] = ['required', 'string', 'max:200'];
             $rules['signature_data'] = ['required', 'string'];
+        } elseif (($data['cheque_action'] ?? null) === 'pick_up') {
+            $rules['cheque_payee_or_drawer'] = ['required', 'string', 'max:200'];
         }
 
         Validator::make($data, $rules, [

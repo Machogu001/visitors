@@ -253,20 +253,23 @@ class BookingPage extends Component
             $rules['idNumber'] = 'required|string|max:100';
             $rules['chequeAction'] = 'required|in:drop_off,pick_up';
             $messages['idNumber.required'] = __('ID number is required for finance department visits.');
+            $rules['chequePayee'] = 'required|string|max:200';
 
             if ($this->chequeAction === 'drop_off') {
                 $rules['chequeNumber'] = 'required|string|max:100';
                 $rules['chequeAmount'] = 'required|numeric|min:0.01';
                 $rules['chequeBank'] = 'required|string|max:150';
-                $rules['chequePayee'] = 'required|string|max:200';
                 $rules['signatureData'] = 'required|string';
 
                 $messages['chequeNumber.required'] = __('Please enter the cheque number.');
                 $messages['chequeAmount.required'] = __('Please enter the cheque amount.');
                 $messages['chequeBank.required'] = __('Please enter the bank name.');
-                $messages['chequePayee.required'] = __('Please enter the drawer or account name.');
                 $messages['signatureData.required'] = __('Please sign to acknowledge the cheque details.');
             }
+
+            $messages['chequePayee.required'] = $this->chequeAction === 'pick_up'
+                ? __('Please enter the cheque payee or beneficiary name.')
+                : __('Please enter the drawer or account name.');
         }
 
         $this->validate($rules, $messages);
@@ -293,7 +296,7 @@ class BookingPage extends Component
             'cheque_number' => $this->chequeAction === 'drop_off' ? trim($this->chequeNumber) : null,
             'cheque_amount' => $this->chequeAction === 'drop_off' ? $this->chequeAmount : null,
             'cheque_bank' => $this->chequeAction === 'drop_off' ? trim($this->chequeBank) : null,
-            'cheque_payee_or_drawer' => $this->chequeAction === 'drop_off' ? trim($this->chequePayee) : null,
+            'cheque_payee_or_drawer' => $this->isFinanceBooking ? trim($this->chequePayee) : null,
             'signature_data' => $this->chequeAction === 'drop_off' ? $this->signatureData : null,
             'signed_by_name' => $this->chequeAction === 'drop_off' ? trim($this->firstName.' '.$this->lastName) : null,
         ]);

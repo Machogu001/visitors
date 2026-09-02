@@ -934,5 +934,15 @@
     "New Date & Time: :datetime": "New Date & Time: :datetime",
     "Duration: :minutes minutes": "Duration: :minutes minutes",
     "If you have any questions or need to reschedule again, please contact the department directly.": "If you have any questions or need to reschedule again, please contact the department directly.",
-    "View Booking Details": "View Booking Details"
+    "View Booking Details": "View Booking Details",
+    "Your appointment request was not approved": "Your appointment request was not approved",
+    "Unfortunately, your appointment request could not be approved.": "Unfortunately, your appointment request could not be approved.",
+    "Requested appointment details:": "Requested appointment details:",
+    "Date & Time: :datetime": "Date & Time: :datetime",
+    "Reason: :reason": "Reason: :reason",
+    "If you have any questions, please contact the department directly.": "If you have any questions, please contact the department directly.",
+    "A visit has been rescheduled": "A visit has been rescheduled",
+    "A visit you are hosting has been rescheduled.": "A visit you are hosting has been rescheduled.",
+    "Visitor(s): :names": "Visitor(s): :names",
+    "Unknown": "Unknown"
 }

@@ -180,6 +180,17 @@ class VisitActionService
             'rejection_reason' => $reason,
         ]);
 
+        $visit->loadMissing(['visitors', 'host', 'department', 'site']);
+        foreach ($visit->visitors as $guest) {
+            try {
+                if ($guest->email) {
+                    $guest->notify(new \App\Notifications\Guest\VisitRejected($visit, $reason));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('mail')->warning('Failed sending guest rejection notification: '.$e->getMessage());
+            }
+        }
+
         return $visit->refresh();
     }
 
@@ -258,7 +269,7 @@ class VisitActionService
         ]);
 
         // Notify all visitors about the reschedule
-        $visit->loadMissing(['visitors', 'host', 'department', 'site']);
+        $visit->loadMissing(['visitors', 'host', 'department.receptionist', 'site']);
         foreach ($visit->visitors as $visitor) {
             try {
                 if ($visitor->email) {
@@ -266,6 +277,27 @@ class VisitActionService
                 }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::channel('mail')->warning('Failed sending visit reschedule notification: '.$e->getMessage());
+            }
+        }
+
+        // Notify the host (and department receptionist, if any) about the reschedule
+        $recipients = collect();
+
+        if ($visit->host instanceof User && $visit->host->is_active && $visit->host->id !== $actionBy->id) {
+            $recipients->push($visit->host);
+        }
+
+        if ($visit->department?->receptionist instanceof User && $visit->department->receptionist->is_active && $visit->department->receptionist->id !== $actionBy->id) {
+            $recipients->push($visit->department->receptionist);
+        }
+
+        foreach ($recipients->unique('id') as $recipient) {
+            try {
+                if ($recipient->email) {
+                    $recipient->notify(new \App\Notifications\Host\VisitRescheduled($visit, $visit->visitors));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::channel('mail')->warning('Failed sending host reschedule notification: '.$e->getMessage());
             }
         }
 

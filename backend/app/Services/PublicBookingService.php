@@ -152,7 +152,7 @@ class PublicBookingService
 
             $visit->visitors()->attach($visitor->id);
 
-            $this->sendNotificationsSafely($visit, $visitor, $host);
+            $this->sendNotificationsSafely($visit, $visitor, $host, $department);
 
             Log::channel('web')->info('Public appointment booked', [
                 'visit_id' => $visit->id,
@@ -232,7 +232,7 @@ class PublicBookingService
         return $data;
     }
 
-    private function sendNotificationsSafely(Visit $visit, Visitor $visitor, User $host): void
+    private function sendNotificationsSafely(Visit $visit, Visitor $visitor, User $host, ?Department $department = null): void
     {
         try {
             if ($visitor->email) {
@@ -248,6 +248,17 @@ class PublicBookingService
             }
         } catch (Exception $e) {
             Log::channel('mail')->warning('Failed sending host booking notification email: ' . $e->getMessage());
+        }
+
+        $receptionist = $department?->receptionist;
+        if ($receptionist instanceof User && $receptionist->is_active && $receptionist->id !== $host->id) {
+            try {
+                if ($receptionist->email) {
+                    $receptionist->notify(new HostVisitCreatedNotification($visit, collect([$visitor])));
+                }
+            } catch (Exception $e) {
+                Log::channel('mail')->warning('Failed sending receptionist booking notification email: ' . $e->getMessage());
+            }
         }
     }
 

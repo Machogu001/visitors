@@ -82,5 +82,6 @@
     </div>
 </div>
 @livewireScripts
+@include('partials.pwa-install-button')
 </body>
 </html>

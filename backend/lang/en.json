@@ -956,5 +956,8 @@
     "This tracking link is no longer active": "This tracking link is no longer active",
     "You have already been checked in for this visit on :datetime.": "You have already been checked in for this visit on :datetime.",
     "The scheduled time for this appointment has passed.": "The scheduled time for this appointment has passed.",
-    "This link becomes inactive once your visit time has passed or you have been checked in.": "This link becomes inactive once your visit time has passed or you have been checked in."
+    "This link becomes inactive once your visit time has passed or you have been checked in.": "This link becomes inactive once your visit time has passed or you have been checked in.",
+    "Install App": "Install App",
+    "Install this app: tap the Share icon, then \"Add to Home Screen\".": "Install this app: tap the Share icon, then \"Add to Home Screen\".",
+    "Dismiss": "Dismiss"
 }

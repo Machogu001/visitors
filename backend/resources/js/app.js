@@ -4,6 +4,10 @@ import 'tom-select/dist/css/tom-select.default.css';
 import focus from '@alpinejs/focus';
 import TomSelect from 'tom-select';
 import { visitForm } from './portal/visit-form';
+import { registerServiceWorker, initInstallPrompt } from './pwa';
+
+registerServiceWorker();
+initInstallPrompt();
 
 const initializeTomSelect = () => {
     document.querySelectorAll('[data-bp-tom-select]').forEach((select) => {

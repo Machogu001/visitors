@@ -1,6 +1,10 @@
 {
+    "id": "/",
     "name": "VisitorPortal",
     "short_name": "VisitorPortal",
+    "description": "Book, track and manage visitor appointments.",
+    "start_url": "/book",
+    "scope": "/",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -10,7 +14,8 @@
         {
             "src": "/android-chrome-512x512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ],
     "theme_color": "#f3f5f9",

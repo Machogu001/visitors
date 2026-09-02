@@ -11,6 +11,7 @@ namespace App\Notifications\Host;
 use App\Mail\Host\VisitCreatedMail;
 use App\Models\User;
 use App\Models\Visit;
+use App\Support\PortalNotificationData;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -37,7 +38,7 @@ class VisitCreated extends Notification implements ShouldQueue
      */
     public function via(User $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -62,8 +63,22 @@ class VisitCreated extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            //
-        ];
+        $visitorName = trim(implode(', ', $this->visitors->map(
+            fn ($visitor) => trim(($visitor->first_name ?? '').' '.($visitor->name ?? ''))
+        )->filter()->all()));
+
+        return PortalNotificationData::make(
+            type: 'visit_created',
+            titleKey: 'New appointment booked',
+            messageKey: 'A new appointment with :name has been booked.',
+            messageReplacements: [
+                'name' => $visitorName !== '' ? $visitorName : __('a visitor'),
+            ],
+            actionUrl: route('portal.visits.show', $this->visit->getKey(), absolute: false),
+            actionLabelKey: 'View appointment',
+            context: [
+                'visit_id' => $this->visit->id,
+            ],
+        );
     }
 }

@@ -944,5 +944,11 @@
     "A visit has been rescheduled": "A visit has been rescheduled",
     "A visit you are hosting has been rescheduled.": "A visit you are hosting has been rescheduled.",
     "Visitor(s): :names": "Visitor(s): :names",
-    "Unknown": "Unknown"
+    "Unknown": "Unknown",
+    "New appointment booked": "New appointment booked",
+    "A new appointment with :name has been booked.": "A new appointment with :name has been booked.",
+    "a visitor": "a visitor",
+    "View appointment": "View appointment",
+    "Appointment rescheduled": "Appointment rescheduled",
+    "The appointment with :name has been moved to :datetime.": "The appointment with :name has been moved to :datetime."
 }

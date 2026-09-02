@@ -950,5 +950,11 @@
     "a visitor": "a visitor",
     "View appointment": "View appointment",
     "Appointment rescheduled": "Appointment rescheduled",
-    "The appointment with :name has been moved to :datetime.": "The appointment with :name has been moved to :datetime."
+    "The appointment with :name has been moved to :datetime.": "The appointment with :name has been moved to :datetime.",
+    "Track your booking": "Track your booking",
+    "Your appointment": "Your appointment",
+    "This tracking link is no longer active": "This tracking link is no longer active",
+    "You have already been checked in for this visit on :datetime.": "You have already been checked in for this visit on :datetime.",
+    "The scheduled time for this appointment has passed.": "The scheduled time for this appointment has passed.",
+    "This link becomes inactive once your visit time has passed or you have been checked in.": "This link becomes inactive once your visit time has passed or you have been checked in."
 }

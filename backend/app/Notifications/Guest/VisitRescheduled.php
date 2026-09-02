@@ -9,6 +9,7 @@
 namespace App\Notifications\Guest;
 
 use App\Models\Visit;
+use App\Support\BookingTrackingUrl;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -48,7 +49,7 @@ class VisitRescheduled extends Notification implements ShouldQueue
             ->line('')
             ->line(__('Booking Code: :code', ['code' => $this->visit->booking_reference]))
             ->line('')
-            ->action(__('View Booking Details'), url('/'))
+            ->action(__('Track your booking'), BookingTrackingUrl::generate($this->visit))
             ->line(__('If you have any questions or need to reschedule again, please contact the department directly.'));
     }
 }

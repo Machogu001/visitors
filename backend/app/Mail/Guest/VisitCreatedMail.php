@@ -11,6 +11,7 @@ namespace App\Mail\Guest;
 use App\Models\Visit;
 use App\Models\Visitor;
 use App\Support\MailGreeting;
+use App\Support\BookingTrackingUrl;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -52,7 +53,8 @@ class VisitCreatedMail extends Mailable
         ))
             ->with('greeting', MailGreeting::forVisitor($this->visitor))
             ->with('visitor', $this->visitor)
-            ->with('visit', $this->visit);
+            ->with('visit', $this->visit)
+            ->with('trackingUrl', BookingTrackingUrl::generate($this->visit));
     }
 
     /**

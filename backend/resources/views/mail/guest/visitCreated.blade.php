@@ -16,6 +16,10 @@
     | {{ Carbon::parse($visit->scheduled_from)->format('d.m.Y') }} | {{ Carbon::parse($visit->scheduled_from)->format('H:i') }} | {{ Carbon::parse($visit->scheduled_until)->format('H:i') }} |
 </x-mail::table>
 
+<x-mail::button :url="$trackingUrl">
+    {{ __('Track your booking') }}
+</x-mail::button>
+
 @if($privacyNoticeUrl)
 {{ __('Datenschutzhinweise') }}: {{ $privacyNoticeUrl }}
 @endif

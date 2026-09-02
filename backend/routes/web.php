@@ -33,6 +33,7 @@ Route::get('/', function (Request $request) {
 
 Route::get('/book', BookingPage::class)->name('public.book');
 Route::get('/book/ical/{reference}', [BookingController::class, 'ical'])->name('public.book.ical');
+Route::get('/book/track/{reference}', [BookingController::class, 'track'])->name('public.book.track');
 
 Route::get('/lang', function (Request $request) {
     $locale = UserPreferences::normalizeLocale($request->input('locale'));

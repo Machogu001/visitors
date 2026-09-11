@@ -49,6 +49,12 @@
                     <h2 class="text-2xl font-semibold tracking-tight">{{ __('Anmelden') }}</h2>
                 </div>
 
+                @if (request()->boolean('installed'))
+                    <div class="alert alert-success mb-5 rounded-xl" role="status">
+                        <span>{{ __('Installation complete. Sign in with the administrator account you just created.') }}</span>
+                    </div>
+                @endif
+
                 <x-auth-session-status class="mb-4" :status="session('status')" />
 
                 @if ($ssoAvailable)

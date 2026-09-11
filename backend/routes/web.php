@@ -6,8 +6,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use App\Http\Controllers\Monitor\MonitorController;
 use App\Http\Controllers\Admin\OperationsExportController;
+use App\Http\Controllers\InstallController;
+use App\Http\Controllers\Monitor\MonitorController;
 use App\Http\Controllers\Monitor\MonitorSlidesController;
 use App\Http\Controllers\Portal\OverviewController;
 use App\Http\Controllers\Portal\VisitController as PortalVisitController;
@@ -24,9 +25,14 @@ use App\Livewire\Profile\UserPermissionsPage;
 use App\Livewire\Public\BookingPage;
 use App\Support\AuthRedirector;
 use App\Support\UserPreferences;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', function (Request $request) {
     return $request->user()
@@ -34,7 +40,18 @@ Route::get('/', function (Request $request) {
         : redirect()->route('login');
 })->name('home');
 
-Route::view('/install', 'public.install')->name('install');
+Route::controller(InstallController::class)
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        ValidateCsrfToken::class,
+    ])
+    ->group(function (): void {
+        Route::get('/install', 'create')->name('install');
+        Route::post('/install', 'store')->name('install.store');
+    });
 Route::get('/book', BookingPage::class)->name('public.book');
 Route::get('/book/ical/{reference}', [BookingController::class, 'ical'])->name('public.book.ical');
 Route::get('/book/track/{reference}', [BookingController::class, 'track'])->name('public.book.track');

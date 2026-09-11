@@ -1,9 +1,32 @@
 # Setup
 
-VisitorPortal has two supported setup paths:
+VisitorPortal has three supported setup paths:
 
+- Production browser setup: upload or start the application, then complete `/install`.
 - Demo setup: start the released Docker image with the bundled scripts.
 - Development setup: mount the source tree with `docker-compose.yml` and build locally.
+
+## Production Browser Setup
+
+Use the browser installer for a new production deployment after the web server is serving VisitorPortal. Open:
+
+```text
+https://your-visitorportal-domain.example/install
+```
+
+The wizard collects the portal URL and regional settings, database connection, first site and initial administrator. Selecting **Finish installation** will:
+
+- verify the database connection,
+- write the production environment configuration,
+- generate an application encryption key when one is missing,
+- run all database migrations,
+- create and synchronize production roles and permissions,
+- create the first site and administrator,
+- lock the installer and redirect to sign-in.
+
+Before opening the wizard, the hosting environment must already provide PHP and the required extensions, Composer dependencies, compiled frontend assets, an empty MariaDB/MySQL database (or a writable SQLite location), and write access to `backend/.env`, `backend/storage`, and `backend/bootstrap/cache`. Infrastructure such as the web server, database server, DNS and HTTPS must exist before an application running in the browser can configure itself.
+
+The installer does not require database-backed sessions, CSRF storage, or an existing `APP_KEY`. Its one-time submission token is stored with mode `0600`, and `/install` redirects to sign-in permanently after an administrator exists or `storage/app/installed.lock` has been written. An already configured application also fails closed when its database is temporarily unavailable.
 
 ## Demo Setup
 

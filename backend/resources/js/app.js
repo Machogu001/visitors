@@ -5,6 +5,7 @@ import focus from '@alpinejs/focus';
 import TomSelect from 'tom-select';
 import { visitForm } from './portal/visit-form';
 import { registerServiceWorker, initInstallPrompt } from './pwa';
+import { initInstallerWizard } from './installer';
 
 registerServiceWorker();
 initInstallPrompt();
@@ -28,6 +29,7 @@ const initializeTomSelect = () => {
 };
 
 document.addEventListener('DOMContentLoaded', initializeTomSelect);
+document.addEventListener('DOMContentLoaded', initInstallerWizard);
 document.addEventListener('livewire:navigated', initializeTomSelect);
 
 document.addEventListener('alpine:init', () => {

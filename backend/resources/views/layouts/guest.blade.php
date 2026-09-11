@@ -53,7 +53,7 @@
         {{ $slot }}
     </div>
 </div>
-@unless (request()->routeIs('install'))
+@unless (request()->routeIs('install', 'install.store'))
     @include('partials.pwa-install-button')
 @endunless
 </body>

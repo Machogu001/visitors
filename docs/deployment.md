@@ -23,7 +23,15 @@ See [Release Artifacts](release-artifacts.md) for details.
 
 ## Production Environment
 
-Create a real production `.env` from `backend/.env.production.example`.
+For a source-based installation, the browser wizard can create the production environment file. Ensure `backend/.env` or its parent directory is writable by the web server during setup, then open:
+
+```text
+https://visitorportal.example.com/install
+```
+
+Enter the application, database, site and administrator details, then select **Finish installation**. The installer verifies the connection, generates `APP_KEY`, runs migrations, synchronizes permissions, creates the first administrator and locks itself. No migration or administrator Artisan commands are required.
+
+Alternatively, create a real production `.env` from `backend/.env.production.example` for command-line or Docker deployment.
 
 For Docker production, place `.env` in the repository root next to `docker-compose.prod.yml`.
 
@@ -88,11 +96,6 @@ The bootstrap does not create demo users and does not use a default password. Ad
 composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
-php artisan storage:link
-php artisan visitorportal:install
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
 ```
 
 `npm run build` checks for Mermaid and installs it when missing. To perform the same recovery manually, run:
@@ -101,9 +104,13 @@ php artisan view:cache
 npm ls mermaid --depth=0 || npm install --no-audit --no-fund mermaid@^12.0.0
 ```
 
-4. Ensure the web server user can write to `backend/storage` and `backend/bootstrap/cache`.
-5. Run a queue worker continuously.
-6. Run the scheduler every minute through cron or systemd.
+4. Ensure the web server user can write to `backend/.env`, `backend/storage` and `backend/bootstrap/cache`.
+5. Open `/install` on the HTTPS deployment and complete the browser wizard.
+6. Configure the `backend/public/storage` symlink through your hosting control panel if the release package does not already provide it.
+7. Run a queue worker continuously.
+8. Run the scheduler every minute through cron or systemd.
+
+The browser wizard configures the application after it is reachable. It cannot provision DNS, TLS, PHP, the web server, Composer dependencies, frontend assets, the database server, queue workers or scheduler processes; use your hosting panel or deployment platform for those infrastructure tasks.
 
 ## Roles And Permissions
 

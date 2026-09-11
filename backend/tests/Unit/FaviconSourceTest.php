@@ -45,6 +45,36 @@ class FaviconSourceTest extends TestCase
         }
     }
 
+    public function test_manifest_supports_browser_installation(): void
+    {
+        $manifest = json_decode(
+            (string) file_get_contents(public_path('site.webmanifest')),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        $this->assertSame('/', $manifest['id']);
+        $this->assertSame('/overview?source=pwa', $manifest['start_url']);
+        $this->assertSame('/', $manifest['scope']);
+        $this->assertSame('standalone', $manifest['display']);
+        $this->assertFalse($manifest['prefer_related_applications']);
+        $this->assertSame(['192x192', '512x512'], array_column($manifest['icons'], 'sizes'));
+    }
+
+    public function test_service_worker_and_install_prompt_are_packaged(): void
+    {
+        $this->assertFileExists(public_path('sw.js'));
+
+        $appSource = $this->source('resources/js/app.js');
+        $pwaSource = $this->source('resources/js/pwa.js');
+
+        $this->assertStringContainsString('registerServiceWorker();', $appSource);
+        $this->assertStringContainsString('initInstallPrompt();', $appSource);
+        $this->assertStringContainsString("navigator.serviceWorker.register('/sw.js')", $pwaSource);
+        $this->assertStringContainsString("window.addEventListener('beforeinstallprompt'", $pwaSource);
+        $this->assertStringContainsString('window.pwaInstallState', $pwaSource);
+    }
+
     public function test_favicon_partial_is_included_without_breaking_page_rendering_when_missing(): void
     {
         foreach ([

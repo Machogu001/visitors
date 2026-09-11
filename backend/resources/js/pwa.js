@@ -1,4 +1,13 @@
 let deferredInstallPrompt = null;
+window.pwaInstallState = window.pwaInstallState || {
+    installable: false,
+    iosInstructions: false,
+};
+
+const updateInstallState = (state) => {
+    Object.assign(window.pwaInstallState, state);
+    window.dispatchEvent(new CustomEvent('pwa:state-changed', { detail: window.pwaInstallState }));
+};
 
 const isStandaloneDisplay = () => window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
@@ -21,16 +30,16 @@ export const initInstallPrompt = () => {
     window.addEventListener('beforeinstallprompt', (event) => {
         event.preventDefault();
         deferredInstallPrompt = event;
-        window.dispatchEvent(new CustomEvent('pwa:installable', { detail: { available: true } }));
+        updateInstallState({ installable: true });
     });
 
     window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
-        window.dispatchEvent(new CustomEvent('pwa:installable', { detail: { available: false } }));
+        updateInstallState({ installable: false, iosInstructions: false });
     });
 
     if (isIos() && !isStandaloneDisplay()) {
-        window.dispatchEvent(new CustomEvent('pwa:ios-instructions', { detail: { available: true } }));
+        updateInstallState({ iosInstructions: true });
     }
 };
 
@@ -42,5 +51,5 @@ window.pwaInstall = async () => {
     deferredInstallPrompt.prompt();
     await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
-    window.dispatchEvent(new CustomEvent('pwa:installable', { detail: { available: false } }));
+    updateInstallState({ installable: false });
 };

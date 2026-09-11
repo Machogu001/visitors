@@ -1,8 +1,8 @@
 <div
     x-data="{
-        installable: false,
+        installable: window.pwaInstallState?.installable ?? false,
         installDismissed: sessionStorage.getItem('bp_pwa_install_dismissed') === '1',
-        iosInstructions: false,
+        iosInstructions: window.pwaInstallState?.iosInstructions ?? false,
         iosDismissed: localStorage.getItem('bp_pwa_ios_dismissed') === '1',
         dismissInstall() {
             this.installDismissed = true;
@@ -13,8 +13,7 @@
             localStorage.setItem('bp_pwa_ios_dismissed', '1');
         },
     }"
-    x-on:pwa:installable.window="installable = $event.detail.available"
-    x-on:pwa:ios-instructions.window="iosInstructions = $event.detail.available"
+    x-on:pwa:state-changed.window="installable = $event.detail.installable; iosInstructions = $event.detail.iosInstructions"
 >
     <div
         x-show="installable && !installDismissed"

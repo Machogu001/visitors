@@ -3,8 +3,9 @@
     "name": "VisitorPortal",
     "short_name": "VisitorPortal",
     "description": "Book, track and manage visitor appointments.",
-    "start_url": "/book",
+    "start_url": "/overview?source=pwa",
     "scope": "/",
+    "categories": ["business", "productivity"],
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -20,5 +21,6 @@
     ],
     "theme_color": "#f3f5f9",
     "background_color": "#f3f5f9",
-    "display": "standalone"
+    "display": "standalone",
+    "prefer_related_applications": false
 }

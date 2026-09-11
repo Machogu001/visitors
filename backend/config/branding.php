@@ -21,9 +21,17 @@ return [
 
     'name' => env('BRANDING_NAME', 'VisitorPortal'),
 
+    'default_logo_light' => env('BRANDING_LOGO_LIGHT', 'images/branding/logo-with-text-light.svg'),
+
     'logo_light' => env('BRANDING_LOGO_LIGHT', 'images/branding/logo-with-text-light.svg'),
 
+    'default_logo_dark' => env('BRANDING_LOGO_DARK', 'images/branding/logo-with-text-dark.svg'),
+
     'logo_dark' => env('BRANDING_LOGO_DARK', 'images/branding/logo-with-text-dark.svg'),
+
+    'default_favicon' => env('BRANDING_FAVICON'),
+
+    'favicon' => env('BRANDING_FAVICON'),
 
     'mail_logo' => env('BRANDING_MAIL_LOGO', env('BRANDING_LOGO_LIGHT', 'images/branding/logo-with-text-light.svg')),
 

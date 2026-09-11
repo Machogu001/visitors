@@ -10,6 +10,7 @@ namespace App\Providers;
 
 use App\Auth\Sso\Contracts\OidcAuthenticator;
 use App\Auth\Sso\Facile\FacileOidcAuthenticator;
+use App\Models\BrandingSetting;
 use App\Support\MfaCodeNormalizer;
 use App\Support\OperationalHeartbeat;
 use App\Support\RasterImageUpload;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Events\TwoFactorAuthenticationFailed;
@@ -41,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadBrandingSettings();
+
         if (config('livewire.temporary_file_upload.rules') === null) {
             config(['livewire.temporary_file_upload.rules' => ['required', 'file', 'max:'.RasterImageUpload::maxSizeKilobytes()]]);
         }
@@ -89,6 +93,29 @@ class AppServiceProvider extends ServiceProvider
                 Log::channel('web')->info('Authorization failed.', SafeLogContext::authorization($user, $ability, $arguments));
             }
         });
+    }
+
+    private function loadBrandingSettings(): void
+    {
+        try {
+            if (! Schema::hasTable('branding_settings')) {
+                return;
+            }
+
+            $branding = BrandingSetting::query()->first();
+
+            if (! $branding) {
+                return;
+            }
+
+            config(array_filter([
+                'branding.logo_light' => $branding->logo_light_path,
+                'branding.logo_dark' => $branding->logo_dark_path,
+                'branding.favicon' => $branding->favicon_path,
+            ], fn (?string $path): bool => filled($path)));
+        } catch (\Throwable) {
+            // Environment branding remains available while the database is unavailable.
+        }
     }
 
     private function attemptedMfaMethod(Request $request): string

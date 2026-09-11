@@ -95,6 +95,12 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+`npm run build` checks for Mermaid and installs it when missing. To perform the same recovery manually, run:
+
+```bash
+npm ls mermaid --depth=0 || npm install --no-audit --no-fund mermaid@^12.0.0
+```
+
 4. Ensure the web server user can write to `backend/storage` and `backend/bootstrap/cache`.
 5. Run a queue worker continuously.
 6. Run the scheduler every minute through cron or systemd.

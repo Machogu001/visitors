@@ -3,6 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "ensure:mermaid": "npm ls mermaid --depth=0 || npm install --no-audit --no-fund mermaid@^12.0.0",
+        "prebuild": "npm run ensure:mermaid",
         "build": "vite build",
         "dev": "vite",
         "test:e2e:visit-actions": "playwright test tests/e2e/visit-detail-actions.spec.ts --project=chromium",

@@ -1,29 +1,33 @@
 # VisitorPortal Architecture Diagrams
 
-Comprehensive system architecture and workflow diagrams for VisitorPortal's multi-tier visitor management system.
+System architecture and workflow diagrams for VisitorPortal's visitor management and operational assurance system.
 
 ## 1. System Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Frontend"
         PB["Public Booking"]
-        ADMIN["Admin Panel<br/>Filament"]
+        SELF["Signed Self Check-In"]
+        ADMIN["Admin Panel<br/>Operations, Reports, Audit"]
         RECEPTION["Reception Dashboard<br/>Livewire"]
         MONITOR["Welcome Monitor<br/>Blade"]
+        HEALTH["Readiness Endpoints<br/>JSON"]
     end
     
     subgraph "Application Layer"
-        WEB["Laravel 11 Application"]
-        LW["Livewire 3<br/>Components"]
-        FILAMENT["Filament 3<br/>Admin Panel"]
+        WEB["Laravel 12 Application"]
+        LW["Livewire Components"]
+        FILAMENT["Filament 5<br/>Admin Panel"]
         API["HTTP Routes<br/>Controllers"]
     end
     
     subgraph "Business Logic"
-        VISIT_SVC["VisitActionService<br/>Approvals, Ushering"]
+        VISIT_SVC["VisitActionService<br/>Locked Lifecycle Transitions"]
         BOOKING_SVC["PublicBookingService<br/>Appointments"]
         AVAIL_SVC["BookingAvailabilityService<br/>Slot Calculation"]
+        OCCUPANCY_SVC["OccupancyService<br/>Roll Call and Reports"]
+        AUDIT_SVC["AuditRecorder<br/>Privacy-Safe Events"]
         MAIL_SVC["Mail Service<br/>SMTP Notifications"]
     end
     
@@ -31,11 +35,15 @@ graph TB
         MYSQL["MySQL/MariaDB<br/>visitorportal"]
         CACHE["Cache Store<br/>Database"]
         SESSION["Session Store<br/>Database"]
+        AUDIT["Audit Events<br/>Append-Only UI"]
+        STORAGE["Private Storage<br/>Assets and Files"]
     end
     
     subgraph "External Services"
-        SMTP["SMTP Server<br/>altar59.supremepanel59.com:465"]
+        SMTP["SMTP Server"]
         GOTENBERG["Gotenberg PDF<br/>Badge Generation"]
+        BACKUP["Verified Backup Archive<br/>Database and Storage"]
+        EXTERNAL_MONITOR["External Monitoring"]
     end
     
     subgraph "Models & Data"
@@ -47,9 +55,11 @@ graph TB
     end
     
     PB --> API
+    SELF --> API
     ADMIN --> FILAMENT
     RECEPTION --> LW
     MONITOR --> API
+    HEALTH --> API
     
     API --> WEB
     FILAMENT --> WEB
@@ -58,6 +68,7 @@ graph TB
     WEB --> VISIT_SVC
     WEB --> BOOKING_SVC
     WEB --> AVAIL_SVC
+    WEB --> OCCUPANCY_SVC
     
     VISIT_SVC --> MAIL_SVC
     BOOKING_SVC --> MAIL_SVC
@@ -66,6 +77,9 @@ graph TB
     VISIT_SVC --> VISIT
     BOOKING_SVC --> VISIT
     AVAIL_SVC --> VISIT
+    OCCUPANCY_SVC --> VISIT
+    VISIT_SVC --> AUDIT_SVC
+    AUDIT_SVC --> AUDIT
     VISIT --> MYSQL
     DEPT --> MYSQL
     USER --> MYSQL
@@ -78,6 +92,10 @@ graph TB
     SESSION --> MYSQL
     
     WEB --> GOTENBERG
+    WEB --> STORAGE
+    API --> EXTERNAL_MONITOR
+    MYSQL --> BACKUP
+    STORAGE --> BACKUP
 ```
 
 ## 2. Visitor Workflow - Multi-Tier System
@@ -96,6 +114,8 @@ graph TD
     APPROVE -->|Reject| REJECTED["Status: Rejected<br/>Visitor notified"]
     
     PLANNED --> CHECKIN["Check-In at Reception<br/>Badge printed"]
+    PLANNED --> SELF_CHECKIN["Signed Self Check-In<br/>Time-limited confirmation"]
+    SELF_CHECKIN --> CHECKIN
     
     CHECKIN --> NOTIFY{Department<br/>Type?}
     
@@ -417,6 +437,51 @@ graph LR
     POLICY --> HOST
 ```
 
+## 9. Operations, Monitoring and Recovery
+
+```mermaid
+flowchart LR
+    subgraph "Operational Views"
+        OPERATIONS["Operations Dashboard"]
+        ROLLCALL["Emergency Roll Call"]
+        REPORTS["Bounded Reports"]
+        EXPORTS["CSV Exports"]
+        AUDIT_UI["Read-Only Audit Trail"]
+    end
+
+    subgraph "Runtime Services"
+        OCCUPANCY["OccupancyService"]
+        ACTIONS["VisitActionService"]
+        OVERDUE["Overdue Checkout Task"]
+        QUEUE["Queue Worker"]
+        SCHEDULER["Scheduler"]
+    end
+
+    subgraph "Assurance"
+        AUDIT[(Audit Events)]
+        HEALTH["App, Queue and Scheduler Readiness"]
+        MONITORING["External Monitoring"]
+        BACKUP["Verified Backup Archive"]
+        RESTORE["Isolated Restore Drill"]
+    end
+
+    OCCUPANCY --> OPERATIONS
+    OCCUPANCY --> ROLLCALL
+    OCCUPANCY --> REPORTS
+    REPORTS --> EXPORTS
+    ACTIONS --> AUDIT
+    EXPORTS --> AUDIT
+    AUDIT --> AUDIT_UI
+    OVERDUE --> QUEUE
+    SCHEDULER --> OVERDUE
+    QUEUE --> HEALTH
+    SCHEDULER --> HEALTH
+    HEALTH --> MONITORING
+    DATABASE[(MariaDB)] --> BACKUP
+    STORAGE[(Private Storage)] --> BACKUP
+    BACKUP --> RESTORE
+```
+
 ---
 
 ## Architecture Principles
@@ -437,13 +502,13 @@ graph LR
 - **Ushering**: Department receptionists hand off visitors with tracking
 
 ### Notification System
-- **Real-time**: Queue connection set to `sync` for instant delivery
+- **Queued Delivery**: Database queue workers process email and notification jobs
 - **Multi-channel**: Database notifications (in-app bell) + email via SMTP
 - **Smart Routing**: Notifications route to host, guest, and/or receptionist based on department settings
 
 ### Database Design
 - **Relational**: Foreign keys link visits to users, departments, sites, and visitors
-- **Audit Trail**: `created_at`, `approved_at`, `rejected_at`, `ushered_at` timestamps
+- **Audit Trail**: Dedicated audit events record lifecycle and export activity separately from model timestamps
 - **Extensible**: Cheque fields stored on visit for finance workflows
 - **Digital Signature**: `signature_data` stored as base64 for compliance
 
@@ -452,4 +517,6 @@ graph LR
 - **Model Policies**: Fine-grained authorization per resource
 - **MFA Support**: Optional for users, required for privileged roles
 - **Session Isolation**: Database sessions with 120-minute TTL
+- **Operational Readiness**: Detail-free app, queue and scheduler endpoints support external monitoring
+- **Recovery**: Verified archives cover MariaDB and private storage and are exercised through isolated restore drills
 

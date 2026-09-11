@@ -14,36 +14,53 @@ use App\Models\Visit;
 use App\Models\Visitor;
 use App\Notifications\Host\GuestCheckedInDatabaseNotification;
 use App\Notifications\Host\GuestCheckedInMailNotification;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class VisitActionService
 {
-    public function checkInParticipant(Visit $visit, Visitor $visitor, User $actionBy): Visitor
+    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+
+    public function checkInParticipant(Visit $visit, Visitor $visitor, ?User $actionBy): Visitor
     {
-        $this->ensureVisitCanBeOperated($visit);
+        [$participant, $didCheckIn] = DB::transaction(function () use ($visit, $visitor, $actionBy): array {
+            $lockedVisit = Visit::query()->lockForUpdate()->findOrFail($visit->getKey());
+            $this->ensureVisitCanBeOperated($lockedVisit);
+            $pivot = $this->lockedParticipantPivot($lockedVisit, $visitor);
+            $wasReentry = filled($pivot->checked_out_at);
+            $didCheckIn = blank($pivot->checked_in_at) || $wasReentry;
 
-        $participant = $this->resolveParticipant($visit, $visitor);
-        $pivot = $participant->pivot;
-        $didCheckIn = false;
+            if ($didCheckIn) {
+                $payload = [
+                    'checked_in_at' => now(),
+                    'checked_in_by_user_id' => $actionBy?->id,
+                    'updated_at' => now(),
+                ];
 
-        if (blank($pivot->checked_in_at) || filled($pivot->checked_out_at)) {
-            $payload = [
-                'checked_in_at' => now(),
-                'checked_in_by_user_id' => $actionBy->id,
-                'updated_at' => now(),
-            ];
+                if ($wasReentry) {
+                    $payload['checked_out_at'] = null;
+                    $payload['checked_out_by_user_id'] = null;
+                }
 
-            if (filled($pivot->checked_out_at)) {
-                $payload['checked_out_at'] = null;
-                $payload['checked_out_by_user_id'] = null;
+                DB::table('visit_visitor')
+                    ->where('visit_id', $lockedVisit->id)
+                    ->where('visitor_id', $visitor->id)
+                    ->update($payload);
+
+                $this->auditRecorder->record(
+                    'visit.participant.checked_in',
+                    $lockedVisit,
+                    $actionBy,
+                    $visitor,
+                    $lockedVisit->site_id,
+                    ['was_reentry' => $wasReentry],
+                );
             }
 
-            $visit->visitors()->updateExistingPivot($visitor->id, $payload);
-            $didCheckIn = true;
-        }
-
-        $participant = $this->resolveParticipant($visit, $visitor);
+            return [$this->resolveParticipant($lockedVisit, $visitor), $didCheckIn];
+        });
 
         if ($didCheckIn) {
             $this->notifyHostAboutCheckIn($visit, $participant);
@@ -54,53 +71,93 @@ class VisitActionService
 
     public function checkOutParticipant(Visit $visit, Visitor $visitor, User $actionBy): Visitor
     {
-        $this->ensureVisitCanBeOperated($visit);
-        $this->ensureChequeCollectionIsSigned($visit);
+        return DB::transaction(function () use ($visit, $visitor, $actionBy): Visitor {
+            $lockedVisit = Visit::query()->lockForUpdate()->findOrFail($visit->getKey());
+            $this->ensureVisitCanBeOperated($lockedVisit);
+            $this->ensureChequeCollectionIsSigned($lockedVisit);
+            $pivot = $this->lockedParticipantPivot($lockedVisit, $visitor);
 
-        $participant = $this->resolveParticipant($visit, $visitor);
+            if (filled($pivot->checked_in_at) && blank($pivot->checked_out_at)) {
+                DB::table('visit_visitor')
+                    ->where('visit_id', $lockedVisit->id)
+                    ->where('visitor_id', $visitor->id)
+                    ->update([
+                        'checked_out_at' => now(),
+                        'checked_out_by_user_id' => $actionBy->id,
+                        'updated_at' => now(),
+                    ]);
 
-        if (filled($participant->pivot->checked_in_at) && blank($participant->pivot->checked_out_at)) {
-            $visit->visitors()->updateExistingPivot($visitor->id, [
-                'checked_out_at' => now(),
-                'checked_out_by_user_id' => $actionBy->id,
-                'updated_at' => now(),
-            ]);
-        }
+                $this->auditRecorder->record(
+                    'visit.participant.checked_out',
+                    $lockedVisit,
+                    $actionBy,
+                    $visitor,
+                    $lockedVisit->site_id,
+                );
+            }
 
-        return $this->resolveParticipant($visit, $visitor);
+            return $this->resolveParticipant($lockedVisit, $visitor);
+        });
     }
 
-    public function printBadge(Visit $visit, Visitor $visitor): Visitor
+    public function printBadge(Visit $visit, Visitor $visitor, ?User $actionBy = null): Visitor
     {
-        $this->ensureVisitCanBeOperated($visit);
+        return DB::transaction(function () use ($visit, $visitor, $actionBy): Visitor {
+            $lockedVisit = Visit::query()->lockForUpdate()->findOrFail($visit->getKey());
+            $this->ensureVisitCanBeOperated($lockedVisit);
+            $pivot = $this->lockedParticipantPivot($lockedVisit, $visitor);
 
-        $participant = $this->resolveParticipant($visit, $visitor);
+            if (blank($pivot->badge_printed_at)) {
+                DB::table('visit_visitor')
+                    ->where('visit_id', $lockedVisit->id)
+                    ->where('visitor_id', $visitor->id)
+                    ->update([
+                        'badge_printed_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
-        if (blank($participant->pivot->badge_printed_at)) {
-            $visit->visitors()->updateExistingPivot($visitor->id, [
-                'badge_printed_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+                $this->auditRecorder->record(
+                    'visit.participant.badge_printed',
+                    $lockedVisit,
+                    $actionBy ?? (auth()->user() instanceof User ? auth()->user() : null),
+                    $visitor,
+                    $lockedVisit->site_id,
+                );
+            }
 
-        return $this->resolveParticipant($visit, $visitor);
+            return $this->resolveParticipant($lockedVisit, $visitor);
+        });
     }
 
-    public function cancelCheckIn(Visit $visit, Visitor $visitor): Visitor
+    public function cancelCheckIn(Visit $visit, Visitor $visitor, ?User $actionBy = null): Visitor
     {
-        $participant = $this->resolveParticipant($visit, $visitor);
+        return DB::transaction(function () use ($visit, $visitor, $actionBy): Visitor {
+            $lockedVisit = Visit::query()->lockForUpdate()->findOrFail($visit->getKey());
+            $pivot = $this->lockedParticipantPivot($lockedVisit, $visitor);
 
-        if (filled($participant->pivot->checked_in_at) || filled($participant->pivot->checked_out_at)) {
-            $visit->visitors()->updateExistingPivot($visitor->id, [
-                'checked_in_at' => null,
-                'checked_in_by_user_id' => null,
-                'checked_out_at' => null,
-                'checked_out_by_user_id' => null,
-                'updated_at' => now(),
-            ]);
-        }
+            if (filled($pivot->checked_in_at) || filled($pivot->checked_out_at)) {
+                DB::table('visit_visitor')
+                    ->where('visit_id', $lockedVisit->id)
+                    ->where('visitor_id', $visitor->id)
+                    ->update([
+                        'checked_in_at' => null,
+                        'checked_in_by_user_id' => null,
+                        'checked_out_at' => null,
+                        'checked_out_by_user_id' => null,
+                        'updated_at' => now(),
+                    ]);
 
-        return $this->resolveParticipant($visit, $visitor);
+                $this->auditRecorder->record(
+                    'visit.participant.check_in_canceled',
+                    $lockedVisit,
+                    $actionBy ?? (auth()->user() instanceof User ? auth()->user() : null),
+                    $visitor,
+                    $lockedVisit->site_id,
+                );
+            }
+
+            return $this->resolveParticipant($lockedVisit, $visitor);
+        });
     }
 
     private function resolveParticipant(Visit $visit, Visitor $visitor): Visitor
@@ -108,6 +165,15 @@ class VisitActionService
         return $visit->visitors()
             ->where('visitors.id', $visitor->id)
             ->firstOrFail();
+    }
+
+    private function lockedParticipantPivot(Visit $visit, Visitor $visitor): object
+    {
+        return DB::table('visit_visitor')
+            ->where('visit_id', $visit->id)
+            ->where('visitor_id', $visitor->id)
+            ->lockForUpdate()
+            ->first() ?? throw (new ModelNotFoundException)->setModel(Visitor::class, [$visitor->id]);
     }
 
     public function canOperate(Visit $visit): bool
@@ -156,6 +222,8 @@ class VisitActionService
             'rejection_reason' => null,
         ]);
 
+        $this->auditRecorder->record('visit.approved', $visit, $actionBy, siteId: $visit->site_id);
+
         // Send confirmation email to guest
         $visit->loadMissing(['visitors', 'host', 'department', 'site']);
         foreach ($visit->visitors as $guest) {
@@ -180,6 +248,14 @@ class VisitActionService
             'rejection_reason' => $reason,
         ]);
 
+        $this->auditRecorder->record(
+            'visit.rejected',
+            $visit,
+            $actionBy,
+            siteId: $visit->site_id,
+            metadata: ['reason_provided' => filled($reason)],
+        );
+
         $visit->loadMissing(['visitors', 'host', 'department', 'site']);
         foreach ($visit->visitors as $guest) {
             try {
@@ -201,6 +277,8 @@ class VisitActionService
             'ushered_by_user_id' => $actionBy->id,
         ]);
 
+        $this->auditRecorder->record('visit.ushered', $visit, $actionBy, siteId: $visit->site_id);
+
         return $visit->refresh();
     }
 
@@ -216,6 +294,14 @@ class VisitActionService
             'signed_by_name' => $data['signed_by_name'] ?? $visit->signed_by_name,
             'signed_at' => ! empty($data['signature_data']) ? now() : $visit->signed_at,
         ]);
+
+        $this->auditRecorder->record(
+            'visit.cheque_details_recorded',
+            $visit,
+            auth()->user() instanceof User ? auth()->user() : null,
+            siteId: $visit->site_id,
+            metadata: ['cheque_action' => (string) $visit->cheque_action],
+        );
 
         return $visit->refresh();
     }
@@ -254,6 +340,8 @@ class VisitActionService
     public function rescheduleVisit(Visit $visit, User $actionBy, string $newDate, string $newTime, int $durationMinutes = 0): Visit
     {
         $timezone = $visit->site->timezone ?: config('app.timezone', 'Africa/Nairobi');
+        $previousScheduledFrom = $visit->scheduled_from->toIso8601String();
+        $previousScheduledUntil = $visit->scheduled_until->toIso8601String();
 
         // Parse new schedule in the site's timezone, convert to UTC
         $newScheduledFrom = \Illuminate\Support\Carbon::parse($newDate.' '.$newTime, $timezone)->setTimezone('UTC');
@@ -267,6 +355,19 @@ class VisitActionService
             'rescheduled_at' => now(),
             'rescheduled_by_user_id' => $actionBy->id,
         ]);
+
+        $this->auditRecorder->record(
+            'visit.rescheduled',
+            $visit,
+            $actionBy,
+            siteId: $visit->site_id,
+            metadata: [
+                'scheduled_from_before' => $previousScheduledFrom,
+                'scheduled_until_before' => $previousScheduledUntil,
+                'scheduled_from_after' => $newScheduledFrom->toIso8601String(),
+                'scheduled_until_after' => $newScheduledUntil->toIso8601String(),
+            ],
+        );
 
         // Notify all visitors about the reschedule
         $visit->loadMissing(['visitors', 'host', 'department.receptionist', 'site']);

@@ -9,6 +9,7 @@ Scheduled tasks are defined in `backend/routes/console.php`:
 - `DailyVisitorReminder`: daily at `07:00`; sends host reminders for today's visits.
 - `WelcomeMonitorAutoGeneration`: every minute; refreshes generated welcome-monitor slides when auto generation is enabled.
 - `CompleteFinishedVisits`: every minute; completes visits whose scheduled window has ended when applicable.
+- `NotifyOverdueCheckouts`: every five minutes; sends deduplicated alerts for participants who remain checked in after their visit ends.
 - `RecurringVisitSeriesExpansion`: daily at `02:30`; expands recurring visit series.
 - Scheduler heartbeat: every minute; updates operational health state.
 - `visits:purge-expired`: daily at `03:15` when `PRIVACY_PURGE_ENABLED=true`.

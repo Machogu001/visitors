@@ -64,6 +64,9 @@ x-app-environment: &app-environment
   HEALTH_QUEUE_STALE_AFTER: "${HEALTH_QUEUE_STALE_AFTER:-300}"
   HEALTH_SCHEDULER_STALE_AFTER: "${HEALTH_SCHEDULER_STALE_AFTER:-300}"
   HEALTH_HEARTBEAT_TTL: "${HEALTH_HEARTBEAT_TTL:-600}"
+  SELF_CHECK_IN_ENABLED: "${SELF_CHECK_IN_ENABLED:-false}"
+  SELF_CHECK_IN_WINDOW_HOURS: "${SELF_CHECK_IN_WINDOW_HOURS:-2}"
+  SELF_CHECK_IN_GRACE_HOURS: "${SELF_CHECK_IN_GRACE_HOURS:-4}"
   BROADCAST_CONNECTION: log
   FILESYSTEM_DISK: local
   MAIL_MAILER: smtp
@@ -107,7 +110,7 @@ services:
       gotenberg:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/up"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/api/health/app"]
       interval: 30s
       timeout: 5s
       retries: 3

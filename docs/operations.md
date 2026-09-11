@@ -20,7 +20,10 @@ Shared service names:
 
 ## Recommended Checks
 
-- HTTP check: `GET /up`.
+- Liveness check: `GET /up`.
+- App readiness check: `GET /api/health/app`.
+- Queue readiness check: `GET /api/health/queue`.
+- Scheduler readiness check: `GET /api/health/scheduler`.
 - Docker container state and Docker health status.
 - App health: `php artisan visitorportal:health app`.
 - Queue health: `php artisan visitorportal:health queue`.
@@ -33,6 +36,8 @@ Shared service names:
 - Retention dry-runs.
 
 Docker Compose does not restart a container only because it is unhealthy. Observe health status through monitoring and alerting.
+
+The readiness endpoints return HTTP `200` with `{"status":"ok","target":"..."}` or HTTP `503` with `{"status":"fail","target":"..."}`. They intentionally omit exception and infrastructure details. Configure the external monitor to alert after two consecutive failures and again when service recovers.
 
 ## Health Commands
 
@@ -161,6 +166,34 @@ Backups must cover:
 - Uploaded branding and welcome-monitor assets.
 
 Test restores regularly. A backup that has never been restored is not an operationally verified backup.
+
+Create a verified production backup from the repository root while the Compose stack is running:
+
+```bash
+./backup-prod.sh --output /srv/visitorportal-backups
+```
+
+The script streams a transaction-consistent MariaDB dump and the application storage volume into one timestamped archive. It validates both compressed payloads and all SHA-256 checksums before reporting success. Database credentials remain inside the database container environment and are not placed in host process arguments or backup metadata.
+
+Keep backup storage outside the application checkout and Docker volumes. Encrypt it at rest, restrict access, and copy it to a separate failure domain. A typical daily systemd timer or cron entry can call:
+
+```bash
+cd /path/to/visitorportal && BACKUP_OUTPUT_DIR=/srv/visitorportal-backups ./backup-prod.sh
+```
+
+Apply retention in the backup destination or backup platform rather than in the application. A practical baseline is 7 daily, 5 weekly, and 12 monthly copies, adjusted for legal and business requirements.
+
+For a restore drill:
+
+1. Provision an isolated test stack with empty volumes and the same application version.
+2. Extract the backup and run `sha256sum --check SHA256SUMS`.
+3. Validate `database.sql.gz` with `gzip -t` and `storage.tar.gz` with `tar -tzf`.
+4. Import the database dump into the isolated MariaDB service and extract storage into its application storage volume.
+5. Run migrations only after the restored application starts on its original version.
+6. Verify login, current visits, visitor assets, audit history, and the three readiness endpoints.
+7. Record the drill date, archive timestamp, recovery time, and any remediation without recording visitor data or secrets.
+
+Never test a restore over production volumes.
 
 ## Troubleshooting
 

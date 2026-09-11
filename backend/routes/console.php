@@ -9,6 +9,7 @@
 use App\Support\OperationalHeartbeat;
 use App\Tasks\CompleteFinishedVisits;
 use App\Tasks\DailyVisitorReminder;
+use App\Tasks\NotifyOverdueCheckouts;
 use App\Tasks\RecurringVisitSeriesExpansion;
 use App\Tasks\WelcomeMonitorAutoGeneration;
 use Illuminate\Foundation\Inspiring;
@@ -27,6 +28,11 @@ Artisan::command('inspire', function () {
 Schedule::call(new DailyVisitorReminder)->dailyAt('07:00')->description('DailyVisitorReminder');
 Schedule::call(new WelcomeMonitorAutoGeneration)->everyMinute()->description('WelcomeMonitorAutoGeneration');
 Schedule::call(new CompleteFinishedVisits)->everyMinute()->description('CompleteFinishedVisits');
+Schedule::call(new NotifyOverdueCheckouts)
+    ->name('visitorportal.notify-overdue-checkouts')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->description('NotifyOverdueCheckouts');
 Schedule::call(new RecurringVisitSeriesExpansion)->dailyAt('02:30')->description('RecurringVisitSeriesExpansion');
 Schedule::call(function (): void {
     app(OperationalHeartbeat::class)->markSchedulerRun();

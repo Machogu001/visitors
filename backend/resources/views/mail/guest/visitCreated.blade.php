@@ -20,6 +20,12 @@
     {{ __('Track your booking') }}
 </x-mail::button>
 
+@if($selfCheckInUrl)
+<x-mail::button :url="$selfCheckInUrl">
+    {{ __('Self check-in') }}
+</x-mail::button>
+@endif
+
 @if($privacyNoticeUrl)
 {{ __('Datenschutzhinweise') }}: {{ $privacyNoticeUrl }}
 @endif

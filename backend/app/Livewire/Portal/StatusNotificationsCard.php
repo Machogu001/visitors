@@ -126,6 +126,14 @@ class StatusNotificationsCard extends Component
             }
         }
 
+        if (Arr::get($notification->data, 'type') === 'overdue_checkout') {
+            $visitId = Arr::get($notification->data, 'context.visit_id');
+
+            if (filled($visitId)) {
+                return route('portal.visits.show', $visitId, absolute: false);
+            }
+        }
+
         return $this->normalizeNotificationUrl(Arr::get($notification->data, 'action_url'));
     }
 
@@ -133,6 +141,7 @@ class StatusNotificationsCard extends Component
     {
         return match (Arr::get($notification->data, 'type')) {
             'guest_checked_in' => __('Besuch eingetroffen'),
+            'overdue_checkout' => __('Overdue check-out'),
             default => null,
         };
     }
@@ -143,6 +152,9 @@ class StatusNotificationsCard extends Component
             'guest_checked_in' => filled($name = $this->notificationVisitorName($notification))
                 ? __('Gast :name ist soeben eingetroffen.', ['name' => $name])
                 : null,
+            'overdue_checkout' => Arr::get($notification->data, 'message_key')
+                ? __(Arr::get($notification->data, 'message_key'), Arr::get($notification->data, 'message_replacements', []))
+                : null,
             default => null,
         };
     }
@@ -151,6 +163,7 @@ class StatusNotificationsCard extends Component
     {
         return match (Arr::get($notification->data, 'type')) {
             'guest_checked_in' => __('Weitere Informationen'),
+            'overdue_checkout' => __('Review visit'),
             default => null,
         };
     }

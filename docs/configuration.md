@@ -52,6 +52,18 @@ Queue and health:
 - `HEALTH_SCHEDULER_STALE_AFTER=300`
 - `HEALTH_HEARTBEAT_TTL=600`
 
+External monitors can use `/up` for process liveness and `/api/health/app`, `/api/health/queue`, and `/api/health/scheduler` for readiness. The readiness responses contain no diagnostic details; use application logs and `visitorportal:health` for investigation.
+
+Optional signed self check-in:
+
+```env
+SELF_CHECK_IN_ENABLED=false
+SELF_CHECK_IN_WINDOW_HOURS=2
+SELF_CHECK_IN_GRACE_HOURS=4
+```
+
+Keep self check-in disabled until the signed-link workflow has been validated in the deployment environment. Links are participant-bound, expire automatically, and are rate limited.
+
 ## Authentication And MFA
 
 Local authentication uses Laravel Fortify. MFA is enabled by default and required for privileged roles.

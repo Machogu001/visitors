@@ -7,14 +7,17 @@
  */
 
 use App\Http\Controllers\Monitor\MonitorController;
+use App\Http\Controllers\Admin\OperationsExportController;
 use App\Http\Controllers\Monitor\MonitorSlidesController;
 use App\Http\Controllers\Portal\OverviewController;
 use App\Http\Controllers\Portal\VisitController as PortalVisitController;
 use App\Http\Controllers\Public\BookingController;
+use App\Http\Controllers\Public\SelfCheckInController;
 use App\Http\Controllers\Reception\DashboardController;
 use App\Http\Controllers\Reception\VisitController as ReceptionVisitController;
 use App\Http\Controllers\Reception\VisitParticipantActionController;
 use App\Http\Middleware\CheckMonitorAutoGeneration;
+use App\Http\Middleware\EnsureAdminPanelMfa;
 use App\Livewire\Portal\CheckInOutBoard;
 use App\Livewire\Portal\VisitShowPage;
 use App\Livewire\Profile\UserPermissionsPage;
@@ -34,6 +37,10 @@ Route::get('/', function (Request $request) {
 Route::get('/book', BookingPage::class)->name('public.book');
 Route::get('/book/ical/{reference}', [BookingController::class, 'ical'])->name('public.book.ical');
 Route::get('/book/track/{reference}', [BookingController::class, 'track'])->name('public.book.track');
+Route::match(['get', 'post'], '/self-check-in/{visit}/{visitor}', SelfCheckInController::class)
+    ->middleware(['signed', 'throttle:10,1'])
+    ->whereNumber(['visit', 'visitor'])
+    ->name('public.self-check-in');
 
 Route::get('/lang', function (Request $request) {
     $locale = UserPreferences::normalizeLocale($request->input('locale'));
@@ -52,6 +59,11 @@ Route::get('/lang', function (Request $request) {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('admin/operations')->name('admin.operations.')->middleware(EnsureAdminPanelMfa::class)->group(function () {
+        Route::get('/roll-call.csv', [OperationsExportController::class, 'rollCall'])->name('roll-call');
+        Route::get('/visits.csv', [OperationsExportController::class, 'visits'])->name('visits');
+    });
+
     Route::get('/overview', [OverviewController::class, 'index'])->name('overview');
     Route::prefix('portal')->name('portal.')->group(function () {
         Route::prefix('visits')->name('visits.')->group(function () {

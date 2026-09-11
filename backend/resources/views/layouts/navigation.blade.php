@@ -100,7 +100,9 @@
                     >
                 @endif
 
-                <p class="truncate text-sm font-semibold">{{ $navBrandLabel }}</p>
+                @unless ($hasLogoLight || $hasLogoDark)
+                    <p class="truncate text-sm font-semibold">{{ $navBrandLabel }}</p>
+                @endunless
             </div>
         </div>
     </div>
@@ -134,9 +136,11 @@
                 >
             @endif
 
-            <div class="min-w-0">
-                <h1 class="truncate text-base font-semibold tracking-tight">{{ $navBrandLabel }}</h1>
-            </div>
+            @unless ($hasLogoLight || $hasLogoDark)
+                <div class="min-w-0">
+                    <h1 class="truncate text-base font-semibold tracking-tight">{{ $navBrandLabel }}</h1>
+                </div>
+            @endunless
         </a>
     </div>
 
@@ -319,7 +323,9 @@
                         fetchpriority="high"
                     >
                 @endif
-                <span class="truncate text-sm font-semibold">{{ $navBrandLabel }}</span>
+                @unless ($hasLogoLight || $hasLogoDark)
+                    <span class="truncate text-sm font-semibold">{{ $navBrandLabel }}</span>
+                @endunless
             </div>
 
             <button

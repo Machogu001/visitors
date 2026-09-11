@@ -19,6 +19,30 @@ class DashboardTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_navigation_does_not_repeat_brand_name_beside_logo(): void
+    {
+        $user = (new PermissionHelper)->getReceptionistUser();
+
+        $response = $this->actingAs($user)->get(route('overview'));
+
+        $response->assertOk();
+        $this->assertStringNotContainsString('>Visitor portal<', $response->getContent());
+    }
+
+    public function test_navigation_uses_brand_name_when_no_logo_is_available(): void
+    {
+        config([
+            'branding.logo_light' => null,
+            'branding.logo_dark' => null,
+        ]);
+        $user = (new PermissionHelper)->getReceptionistUser();
+
+        $this->actingAs($user)
+            ->get(route('overview'))
+            ->assertOk()
+            ->assertSeeText('Visitor portal');
+    }
+
     public function test_dashboard_shows_only_running_and_upcoming_visits_within_30_days(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 4, 30, 11, 2, 0, config('app.timezone')));

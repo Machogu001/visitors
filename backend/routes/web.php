@@ -34,6 +34,7 @@ Route::get('/', function (Request $request) {
         : redirect()->route('login');
 })->name('home');
 
+Route::view('/install', 'public.install')->name('install');
 Route::get('/book', BookingPage::class)->name('public.book');
 Route::get('/book/ical/{reference}', [BookingController::class, 'ical'])->name('public.book.ical');
 Route::get('/book/track/{reference}', [BookingController::class, 'track'])->name('public.book.track');

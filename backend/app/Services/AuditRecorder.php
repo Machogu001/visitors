@@ -13,7 +13,7 @@ final class AuditRecorder
      */
     public function record(
         string $event,
-        Model $auditable,
+        ?Model $auditable,
         ?User $actor = null,
         ?Model $subject = null,
         ?int $siteId = null,
@@ -23,8 +23,8 @@ final class AuditRecorder
             'actor_user_id' => $actor?->getKey(),
             'site_id' => $siteId,
             'event' => $event,
-            'auditable_type' => $auditable->getMorphClass(),
-            'auditable_id' => $auditable->getKey(),
+            'auditable_type' => $auditable?->getMorphClass(),
+            'auditable_id' => $auditable?->getKey(),
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject?->getKey(),
             'metadata' => $metadata ?: null,

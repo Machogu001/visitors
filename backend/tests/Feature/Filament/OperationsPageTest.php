@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\PermissionHelper;
 use Tests\TestCase;
@@ -29,6 +30,13 @@ class OperationsPageTest extends TestCase
             ->get(route('admin.operations.roll-call'))
             ->assertOk()
             ->assertDownload();
+
+        $event = AuditEvent::query()->where('event', 'export.roll_call')->sole();
+
+        $this->assertSame($admin->id, $event->actor_user_id);
+        $this->assertNull($event->auditable_type);
+        $this->assertNull($event->auditable_id);
+        $this->assertSame(0, $event->metadata['row_count']);
     }
 
     public function test_non_admin_cannot_view_operations_or_export(): void

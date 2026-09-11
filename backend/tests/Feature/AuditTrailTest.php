@@ -10,6 +10,7 @@ use App\Models\Visitor;
 use App\Services\VisitActionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Support\PermissionHelper;
 use Tests\TestCase;
 
 class AuditTrailTest extends TestCase
@@ -58,6 +59,26 @@ class AuditTrailTest extends TestCase
         $this->assertSame(['cheque_action' => 'pick_up'], $event->metadata);
         $this->assertStringNotContainsString('SECRET-123', $event->toJson());
         $this->assertStringNotContainsString('SENSITIVE', $event->toJson());
+    }
+
+    public function test_export_events_have_operator_friendly_labels_and_details(): void
+    {
+        config(['security.mfa.app_required_roles' => []]);
+        $admin = (new PermissionHelper)->getIndividualUser([], 'admin');
+
+        AuditEvent::query()->create([
+            'actor_user_id' => $admin->id,
+            'event' => 'export.roll_call',
+            'metadata' => ['row_count' => 3],
+            'occurred_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/audit-events')
+            ->assertOk()
+            ->assertSeeText('Emergency roll call exported')
+            ->assertSeeText('3 people')
+            ->assertSeeText('All sites');
     }
 
     /**

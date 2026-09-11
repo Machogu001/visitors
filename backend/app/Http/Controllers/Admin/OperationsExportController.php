@@ -17,7 +17,7 @@ final class OperationsExportController extends Controller
     {
         $user = $this->admin($request);
         $rows = $occupancy->current();
-        $audit->record('export.roll_call', $user, $user, metadata: ['row_count' => $rows->count()]);
+        $audit->record('export.roll_call', null, $user, metadata: ['row_count' => $rows->count()]);
 
         return response()->streamDownload(function () use ($rows): void {
             $output = fopen('php://output', 'wb');
@@ -51,7 +51,7 @@ final class OperationsExportController extends Controller
             ->whereBetween('scheduled_from', [$from, $to])
             ->orderBy('scheduled_from')
             ->get();
-        $audit->record('export.visit_report', $user, $user, metadata: [
+        $audit->record('export.visit_report', null, $user, metadata: [
             'from' => $from->toDateString(), 'to' => $to->toDateString(), 'row_count' => $rows->count(),
         ]);
 
